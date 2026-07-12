@@ -1,10 +1,10 @@
 import { NestFactory } from '@nestjs/core';
-import { IdentityServiceModule } from './app.module';
+import { AppModule } from './app.module';
 import { createValidationPipe } from '@app/common/pipes/validation-pipe.factory';
 import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(IdentityServiceModule);
+  const app = await NestFactory.create(AppModule);
 
   app.useGlobalPipes(createValidationPipe())
 

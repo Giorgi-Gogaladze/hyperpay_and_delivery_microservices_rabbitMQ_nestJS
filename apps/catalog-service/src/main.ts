@@ -1,8 +1,17 @@
 import { NestFactory } from '@nestjs/core';
-import { CatalogServiceModule } from './catalog-service.module';
+import { AppModule } from './app.module';
+import { createValidationPipe } from '@app/common/pipes/validation-pipe.factory';
+import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(CatalogServiceModule);
-  await app.listen(process.env.port ?? 3000);
+  const app = await NestFactory.create(AppModule);
+
+  app.useGlobalPipes(createValidationPipe())
+
+  const configService = app.get(ConfigService)
+  const port = configService.getOrThrow<number>("CATALOG_PORT");
+
+  await app.listen(port);
+  console.log('Catalog service has started')
 }
 bootstrap();

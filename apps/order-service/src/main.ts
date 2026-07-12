@@ -1,8 +1,17 @@
 import { NestFactory } from '@nestjs/core';
-import { OrderServiceModule } from './order-service.module';
+import { createValidationPipe } from '@app/common/pipes/validation-pipe.factory';
+import { ConfigService } from '@nestjs/config';
+import { AppModule } from './app.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(OrderServiceModule);
-  await app.listen(process.env.port ?? 3000);
+  const app = await NestFactory.create(AppModule);
+
+  app.useGlobalPipes(createValidationPipe())
+
+  const configService = app.get(ConfigService)
+  const port = configService.getOrThrow<number>('ORDER_PORT')
+
+  await app.listen(port);
+  console.log('Identity service has started')
 }
 bootstrap();
