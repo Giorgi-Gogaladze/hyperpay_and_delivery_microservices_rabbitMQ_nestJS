@@ -1,0 +1,65 @@
+version: '3.8'
+
+services: 
+  postgres: 
+    image: postgres:16-alpine
+    container_name: hyperpay_postgres
+    restart: always
+    env_file: 
+      - .env
+    environment: 
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_MULTIPLE_DATABASES: identity_db, catalog_db, order_db, wallet_db
+    ports: 
+      - '5432:5432'
+    volumes: 
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-multiple-dbs.sh:/docker-entrypoint-initdb.d/init-multiple-dbs.sh
+
+  pgadmin: 
+    image: dpage/pgadmin4
+    container_name: hyperpay_pgadmin
+    restart: unless-stopped
+    env_file: 
+      - .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - '5050:80'
+    depends_on:
+      - postgres
+    volumes: 
+      - pgadmin_data:/var/lib/pgadmin
+  
+  redis: 
+    image: redis:7-alpine
+    container_name: hyperpay_redis
+    restart: always
+    ports: 
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+  
+  rabbitmq: 
+    image: rabbitmq:3-management-alpine
+    container_name: hyperpay_rabbitmq
+    restart: always
+    env_file: 
+      - .env
+    environment: 
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    ports: 
+      - '5672:5672'
+      - '15672:15672'
+    volumes: 
+      - rabbitmq_data:/var/lib/rabbitmq
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+  redis_data:
+  rabbitmq_data: 
+    
