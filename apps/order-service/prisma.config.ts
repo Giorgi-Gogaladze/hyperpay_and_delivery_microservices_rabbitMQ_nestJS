@@ -2,9 +2,10 @@
 // npm install --save-dev prisma dotenv
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
+import path from 'node:path'
 
 export default defineConfig({
-  schema: "prisma/schema.prisma",
+  schema: path.join("prisma"),
   migrations: {
     path: "prisma/migrations",
   },
