@@ -1,0 +1,25 @@
+model Wallet {
+    id       String @id @default(uuid()) @db.Uuid
+    userId   String @unique @db.Uuid
+
+    balance  Decimal @default(0.0) @db.Decimal(12, 2)
+    currency String  @default("GEL")
+
+    status   WalletStatus @default(ACTIVE)
+    version  Int          @default(0)
+
+    stripeCustomerId          String? @unique
+    stripeConnectedAccountId  String? @unique
+    stripeOnboardingComplete  Boolean @default(false)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("wallets")
+}
+
+enum WalletStatus {
+    ACTIVE
+    FROZEN
+    CLOSED
+}
