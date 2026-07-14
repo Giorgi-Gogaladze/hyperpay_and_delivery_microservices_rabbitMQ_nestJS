@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto } from './dtos/register.dto';
 import { Role, User } from '../generated/prisma/client';
@@ -76,6 +76,29 @@ export class AuthService {
 
         const {password, refreshToken, ...safeUser} = user;
         return {user: safeUser, tokens};
+
+    }
+
+
+    async refreshToken(userId: string, refreshToken: string): Promise<IAuthTokens>{
+        const user = await this.Prisma.user.findUnique({
+            where: {id: userId}
+        });
+
+        if(!user || !user.refreshToken){
+            throw new ForbiddenException('Access denied')
+        }
+
+        const hashedRt = crypto.createHash('sha256').update(refreshToken).digest('hex');
+        const rtMatches = hashedRt === user.refreshToken;
+
+        if (!rtMatches) {
+            throw new ForbiddenException('Access Denied');
+        }
+        const tokerns = await this.generateTokens(user.id, user.email, user.role);
+        await this.updateRefreshTokenHash(user.id, tokerns.refreshToken);
+
+        return tokerns;
 
     }
 
