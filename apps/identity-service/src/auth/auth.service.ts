@@ -99,7 +99,6 @@ export class AuthService {
         await this.updateRefreshTokenHash(user.id, tokerns.refreshToken);
 
         return tokerns;
-
     }
 
 
