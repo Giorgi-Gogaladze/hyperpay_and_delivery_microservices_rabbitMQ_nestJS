@@ -1,10 +1,11 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto } from './dtos/register.dto';
 import { Role, User } from '../generated/prisma/client';
 import * as argon2 from 'argon2'
 import * as crypto from 'crypto'
 import { JwtService } from '@nestjs/jwt';
+import { LoginDto } from './dtos/login.dto';
 
 type SafeUser = Omit<User, 'password' | 'refreshToken'>; 
 
@@ -55,13 +56,38 @@ export class AuthService {
 
 
 
+    async login(dto: LoginDto): Promise<IAuthResponse>{
+        const user = await this.Prisma.user.findUnique({
+            where: {email: dto.email}
+        });
+
+        if(!user){
+            throw new NotFoundException("User not found!")
+        };
+
+        const passwordMatches = await argon2.verify(user.password, dto.password);
+
+        if(!passwordMatches){
+            throw new UnauthorizedException('Incorrect password or email')
+        };
+
+        const tokens = await this.generateTokens(user.id, user.email, user.role);
+        await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
+
+        const {password, refreshToken, ...safeUser} = user;
+        return {user: safeUser, tokens};
+
+    }
+
+
+
     private async generateTokens(userId: string, email: string, role: string): Promise<IAuthTokens>{
         const payload = {sub: userId, email, role};
 
         const [accessToken, refreshToken] = await Promise.all([
             this.jwtService.signAsync(payload, {
                 secret: process.env.JWT_ACCESS_SECRET,
-                expiresIn: '15m',
+                expiresIn: '30m',
             }),
             this.jwtService.signAsync(payload, {
                 secret: process.env.JWT_REFRESH_SECRET,
