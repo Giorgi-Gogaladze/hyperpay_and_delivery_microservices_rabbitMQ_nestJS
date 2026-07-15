@@ -114,15 +114,15 @@ export class AuthService {
         if (!rtMatches) {
             throw new ForbiddenException('Access Denied');
         }
-        const tokerns = await this.generateTokens(user.id, user.email, user.role);
-        await this.updateRefreshTokenHash(user.id, tokerns.refreshToken);
+        const tokens = await this.generateTokens(user.id, user.email, user.role);
+        await this.updateRefreshTokenHash(user.id, tokens.refreshToken);
 
-        return tokerns;
+        return tokens;
     }
 
 
 
-    private async generateTokens(userId: string, email: string, role: string): Promise<IAuthTokens>{
+    private async generateTokens(userId: string, email: string, role: Role): Promise<IAuthTokens>{
         const payload = {sub: userId, email, role};
 
         const [accessToken, refreshToken] = await Promise.all([
