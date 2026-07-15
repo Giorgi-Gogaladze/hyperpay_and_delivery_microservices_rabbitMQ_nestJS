@@ -62,7 +62,7 @@ export class AuthService {
         });
 
         if(!user){
-            throw new NotFoundException("User not found!")
+            throw new NotFoundException("Incorrect password or email")
         };
 
         const passwordMatches = await argon2.verify(user.password, dto.password);
@@ -77,6 +77,25 @@ export class AuthService {
         const {password, refreshToken, ...safeUser} = user;
         return {user: safeUser, tokens};
 
+    }
+
+
+    async logout(userId: string): Promise<void>{
+        const user = await this.Prisma.user.findUnique({
+            where: {id: userId}
+        });
+
+        if(!user){
+            throw new NotFoundException("User not found!")
+        };
+
+        await this.Prisma.user.update({
+            where: {id: userId},
+            data: {
+                refreshToken: null,
+
+            }
+        })
     }
 
 

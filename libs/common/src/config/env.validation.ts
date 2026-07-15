@@ -5,10 +5,8 @@ export const envValidationSchema = Joi.object({
     .valid('development', 'production', 'test')
     .default('development'),
 
-
   IDENTITY_PORT: Joi.number().default(3001),
   IDENTITY_DATABASE_URL: Joi.string().uri().required(),
-
 
   WALLET_PORT: Joi.number().default(3002),
   WALLET_DATABASE_URL: Joi.string().uri().required(),
