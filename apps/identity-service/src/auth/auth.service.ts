@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto } from './dtos/register.dto';
 import { Role, User } from '../generated/prisma/client';
@@ -6,15 +6,16 @@ import * as argon2 from 'argon2'
 import * as crypto from 'crypto'
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dtos/login.dto';
+import { ClientProxy } from '@nestjs/microservices';
 
-type SafeUser = Omit<User, 'password' | 'refreshToken'>; 
+export type SafeUser = Omit<User, 'password' | 'refreshToken'>; 
 
-interface IAuthTokens {
+export interface IAuthTokens {
     accessToken: string;
     refreshToken: string;
 }
 
-interface IAuthResponse {
+export interface IAuthResponse {
     user: SafeUser;
     tokens: IAuthTokens;
 }
@@ -23,7 +24,8 @@ interface IAuthResponse {
 export class AuthService {
     constructor(
         private readonly Prisma: PrismaService,
-        private readonly jwtService: JwtService
+        private readonly jwtService: JwtService,
+        @Inject('WALLET_SERVICE') private readonly walletClient: ClientProxy,
     ){}
 
     async register(dto: RegisterDto): Promise<IAuthResponse>{
@@ -46,6 +48,10 @@ export class AuthService {
                 role: Role.USER,
             },
         });
+
+        this.walletClient.emit('user.created', {  //გაგზავნის მესიჯს wallet_ის queue_ში. user.created არის ივენთის სახელი, რომლითაც ვოლეტი ამოითებს ამ მესიჯს და ფეილოუდს ქიუდან
+            userId: user.id,
+        })
 
         const tokens: IAuthTokens = await this.generateTokens(user.id, user.email, user.role);
         await this.updateRefreshTokenHash(user.id, tokens.refreshToken);

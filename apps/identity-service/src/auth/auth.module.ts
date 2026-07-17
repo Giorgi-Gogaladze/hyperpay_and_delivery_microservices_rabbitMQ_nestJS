@@ -5,12 +5,13 @@ import { JwtModule } from '@nestjs/jwt'
 import { AuthStrategy } from './strategies/at.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 
 @Module({
   imports: [
     ClientsModule.registerAsync([//კლიენტი, ანუ რომლიც გზავნის მესიჯს(მაგ: wallet_თან)
       {
-        name: 'WALLET_SERVICE', 
+        name: 'WALLET_SERVICE',   //ეს გივნდა, რომ ამ სახელით ჩავაინჯექთოთ სერვისის კონსტრუქტორში
         useFactory: () => ({
           transport: Transport.RMQ,
           options: {
@@ -32,7 +33,8 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
   controllers: [AuthController],
   providers: [
     AuthService,
-    AuthStrategy
+    AuthStrategy,
+    JwtRefreshStrategy
   ]
 })
 export class AuthModule {}
