@@ -5,6 +5,8 @@ import { LoginDto } from './dtos/login.dto';
 import { User} from '../../../../libs/common/src/decoratros/get-current-user.decoratro'
 import { Role } from '../generated/prisma/enums';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
+import { JwtAuthGuard } from '@app/common/guards/jwt-auth.guard';
+import { JwtRefreshGuard } from '@app/common/guards/jwt-refresh.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -21,18 +23,19 @@ export class AuthController {
         return this.authService.login(dto);
     }
 
+    @UseGuards(JwtAuthGuard)
     @Post('logout')
     @HttpCode(HttpStatus.OK)
     async logout(@User('id') userId: string): Promise<void>{
         return await this.authService.logout(userId);
     }
 
-    @UseGuards(JwtRefreshStrategy)
+    @UseGuards(JwtRefreshGuard)
     @HttpCode(HttpStatus.OK)
     @Post('refresh')
-    async refresh(@Req() req: Request){
-        const payload = req.user as {id: string, email: string, role: Role, refreshToken: string};
-        return this.authService.refreshToken(payload.id, refreshToken)
+    async refresh(@User() user: any){
+        const payload = user as {id: string, email: string, role: Role, refreshToken: string};
+        return this.authService.refreshToken(payload.id, user.refreshToken);
     }
 
 
