@@ -19,4 +19,11 @@ export const envValidationSchema = Joi.object({
 
   RABBITMQ_URL: Joi.string().uri().required(),
   REDIS_URL: Joi.string().uri().required(),
+
+  JWT_ACCESS_SECRET: Joi.string().required(),
+  JWT_REFRESH_SECRET: Joi.string().required(),
+
+  RESEND_API_KEY: Joi.string().required(),
+  MAIL_FROM: Joi.string().required(),
+  FRONTEND_URL: Joi.string().uri().required(),
 });
