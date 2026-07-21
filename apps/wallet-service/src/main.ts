@@ -9,10 +9,12 @@ async function bootstrap() {
 
   app.useGlobalPipes(createValidationPipe());
 
+  const configService = app.get(ConfigService)
+
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
-      urls: [process.env.RABBITMQ_URL as string || 'amqp://localhost:5672'],
+      urls: [configService.getOrThrow<string>('RABBITMQ_URL') || 'amqp://localhost:5672'],
       queue: 'wallet_queue',
       queueOptions: {
         durable: true
@@ -23,7 +25,6 @@ async function bootstrap() {
 
   await app.startAllMicroservices();
 
-  const configService = app.get(ConfigService)
   const port = configService.getOrThrow<number>("WALLET_PORT");
 
   await app.listen(port);

@@ -1,6 +1,6 @@
 export * from './common.module';
 export * from './common.service';
 
-export * from './decoratros/get-current-user.decoratro'
+export * from './decorators/get-current-user.decoratro'
 export * from './config/env.validation'
 export * from './pipes/validation-pipe.factory'

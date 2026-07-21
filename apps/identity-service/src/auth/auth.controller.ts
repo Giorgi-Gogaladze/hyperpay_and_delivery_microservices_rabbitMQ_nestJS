@@ -2,9 +2,8 @@ import { Body, Controller, HttpCode, HttpStatus, Post, Req, UseGuards } from '@n
 import { AuthService, IAuthResponse } from './auth.service';
 import { RegisterDto } from './dtos/register.dto';
 import { LoginDto } from './dtos/login.dto';
-import { User} from '../../../../libs/common/src/decoratros/get-current-user.decoratro'
+import { User} from '../../../../libs/common/src/decorators/get-current-user.decoratro'
 import { Role } from '../generated/prisma/enums';
-import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { JwtAuthGuard } from '@app/common/guards/jwt-auth.guard';
 import { JwtRefreshGuard } from '@app/common/guards/jwt-refresh.guard';
 

@@ -23,13 +23,13 @@ export interface IAuthResponse {
 @Injectable()
 export class AuthService {
     constructor(
-        private readonly Prisma: PrismaService,
+        private readonly prisma: PrismaService,
         private readonly jwtService: JwtService,
         @Inject('WALLET_SERVICE') private readonly walletClient: ClientProxy,
     ){}
 
     async register(dto: RegisterDto): Promise<IAuthResponse>{
-        const existingUser = await this.Prisma.user.findUnique({
+        const existingUser = await this.prisma.user.findUnique({
             where: {email: dto.email},
         });
 
@@ -39,7 +39,7 @@ export class AuthService {
 
         const hashedPassword: string = await argon2.hash(dto.password);
 
-        const user: User = await this.Prisma.user.create({
+        const user: User = await this.prisma.user.create({
             data: {
                 firstName: dto.firstName,
                 lastName: dto.lastName,
@@ -63,7 +63,7 @@ export class AuthService {
 
 
     async login(dto: LoginDto): Promise<IAuthResponse>{
-        const user = await this.Prisma.user.findUnique({
+        const user = await this.prisma.user.findUnique({
             where: {email: dto.email}
         });
 
@@ -87,7 +87,7 @@ export class AuthService {
 
 
     async logout(userId: string): Promise<void>{
-        const user = await this.Prisma.user.findUnique({
+        const user = await this.prisma.user.findUnique({
             where: {id: userId}
         });
 
@@ -95,7 +95,7 @@ export class AuthService {
             throw new NotFoundException("User not found!")
         };
 
-        await this.Prisma.user.update({
+        await this.prisma.user.update({
             where: {id: userId},
             data: {
                 refreshToken: null,
@@ -106,7 +106,7 @@ export class AuthService {
 
 
     async refreshToken(userId: string, refreshToken: string): Promise<IAuthTokens>{
-        const user = await this.Prisma.user.findUnique({
+        const user = await this.prisma.user.findUnique({
             where: {id: userId}
         });
 
@@ -154,7 +154,7 @@ export class AuthService {
             .update(refreshToken)
             .digest('hex');
         
-        await this.Prisma.user.update({
+        await this.prisma.user.update({
             where: { id: userId},
             data: { refreshToken: hash}
         })
