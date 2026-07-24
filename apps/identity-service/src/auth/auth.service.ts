@@ -7,6 +7,8 @@ import * as crypto from 'crypto'
 import { JwtService } from '@nestjs/jwt';
 import { LoginDto } from './dtos/login.dto';
 import { ClientProxy } from '@nestjs/microservices';
+import { MailService } from '../mail/mail.service';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 
 export type SafeUser = Omit<User, 'password' | 'refreshToken'>; 
 
@@ -25,6 +27,7 @@ export class AuthService {
     constructor(
         private readonly prisma: PrismaService,
         private readonly jwtService: JwtService,
+        private readonly mailService: MailService,
         @Inject('WALLET_SERVICE') private readonly walletClient: ClientProxy,
     ){}
 
@@ -86,7 +89,7 @@ export class AuthService {
     }
 
 
-    
+
 
 
     async logout(userId: string): Promise<void>{
@@ -161,5 +164,33 @@ export class AuthService {
             where: { id: userId},
             data: { refreshToken: hash}
         })
+    }
+
+
+    async forgotPassword(dto: ForgotPasswordDto): Promise<{message: string}>{
+        const user = await this.prisma.user.findUnique({
+            where: {email: dto.email}
+        });
+
+        if(!user){
+            return {message: `If that email is registered, you'll get a link`}
+        }
+
+        const rawToken = crypto.randomBytes(32).toString('hex');
+        const hashedToken = crypto
+        .createHash('sha256')
+        .update(rawToken)
+        .digest('hex');
+
+        await this.prisma.user.update({
+            where: {id: user.id},
+            data: {
+                resetToken: hashedToken,
+                resetTokenExpiry: new Date(Date.now() + 15 * 60 * 1000),
+            },
+        });
+
+        await this.mailService.sendPasswordResetEmail(user.email, rawToken);
+         return {message: `If that email: ${dto.email} is registered, you'll get a link`}
     }
 }

@@ -23,11 +23,11 @@ export class MailService{
         const {error} = await this.resend.emails.send({
             from: this.mailFrom,
             to,
-            subject: 'password resotre',
+            subject: 'password reset',
             html: `
-                <p>თქვენ მოითხოვეთ პაროლის აღდგენა.</p>
-                <p><a href="${resetLink}">დააჭირეთ აქ ახალი პაროლის დასაყენებლად</a></p>
-                <p>ეს ბმული ვალიდურია 15 წუთის განმავლობაში.</p>
+                <p>You requested a password reset.</p>
+                <p><a href="${resetLink}">Click here to set a new password</a></p>
+                <p>This link is valid for 15 minutes.</p>
             `, 
         });
          
