@@ -7,6 +7,7 @@ import { PassportModule } from '@nestjs/passport';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -31,7 +32,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       global: true,
     }),
     PassportModule,
-    JwtModule.register({})
+    JwtModule.register({}),
+    MailModule,
   ],
   controllers: [AuthController],
   providers: [

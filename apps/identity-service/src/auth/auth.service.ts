@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto } from './dtos/register.dto';
 import { Role, User } from '../generated/prisma/client';
@@ -9,6 +9,8 @@ import { LoginDto } from './dtos/login.dto';
 import { ClientProxy } from '@nestjs/microservices';
 import { MailService } from '../mail/mail.service';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
+import { ResetPasswordDto } from './dtos/reset-password.dto';
+import { retry } from 'rxjs';
 
 export type SafeUser = Omit<User, 'password' | 'refreshToken'>; 
 
@@ -192,5 +194,38 @@ export class AuthService {
 
         await this.mailService.sendPasswordResetEmail(user.email, rawToken);
          return {message: `If that email: ${dto.email} is registered, you'll get a link`}
+    };
+
+
+    async resetPassword(dto: ResetPasswordDto): Promise<{message: string}>{
+        const hashedToken = crypto
+            .createHash('sha256')
+            .update(dto.token)
+            .digest('hex')
+
+        const user = await this.prisma.user.findFirst({
+            where: {
+                resetToken: hashedToken,
+                resetTokenExpiry: { gt: new Date() },
+            },
+        });
+
+        if(!user){
+            throw new BadRequestException('The link is outdated or incorrect')
+        };
+
+        const hashedPassword = await argon2.hash(dto.newPassword);
+
+        await this.prisma.user.update({
+            where: {id: user.id},
+            data: {
+                password: hashedPassword,
+                resetToken: null,
+                resetTokenExpiry: null,
+                refreshToken: null,
+            },
+        });
+
+        return {message: 'Password changed successfully'};
     }
 }

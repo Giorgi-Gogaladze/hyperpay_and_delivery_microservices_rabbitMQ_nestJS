@@ -6,6 +6,8 @@ import { User} from '../../../../libs/common/src/decorators/get-current-user.dec
 import { Role } from '../generated/prisma/enums';
 import { JwtAuthGuard } from '@app/common/guards/jwt-auth.guard';
 import { JwtRefreshGuard } from '@app/common/guards/jwt-refresh.guard';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto';
+import { ResetPasswordDto } from './dtos/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -37,6 +39,16 @@ export class AuthController {
         return this.authService.refreshToken(payload.id, user.refreshToken);
     }
 
+    @Post('forgot-password')
+    @HttpCode(HttpStatus.OK)
+    async forgotPassword(@Body() dto: ForgotPasswordDto) {
+        return this.authService.forgotPassword(dto);
+    }
 
+    @Post('reset-password')
+    @HttpCode(HttpStatus.OK)
+    async resetPassword(@Body() dto: ResetPasswordDto){
+        return this.authService.resetPassword(dto);
+    }
 
 }
