@@ -4,5 +4,7 @@ model Attribute {
 
     createdAt DateTime @default(now())
 
+    attribute_values AttributeValue[]
+
     @@map("attributes")
 }

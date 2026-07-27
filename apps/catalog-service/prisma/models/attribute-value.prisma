@@ -1,6 +1,0 @@
-model AttributeValuea {
-    id    String @id @default(uuid()) @db.Uuid
-    value String
-
-    @@map("attribute_values")
-}

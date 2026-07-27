@@ -1,7 +1,11 @@
 model Review {
     id      String   @id @default(uuid()) @db.Uuid
-    rating  Decimal? @db.Decimal(2, 1)
+    rating  Int? @db.Integer
     comment String?
+    userId String @db.Uuid
+
+    productId String @db.Uuid
+    product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
     createdAt DateTime @default(now())
 

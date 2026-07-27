@@ -1,0 +1,12 @@
+model AttributeValue {
+    id    String @id @default(uuid()) @db.Uuid
+    value String
+
+    attributeId String @db.Uuid
+    attribute Attribute @relation(fields: [attributeId], references: [id], onDelete: Restrict)
+
+    variantValues VariantAttributeValue[]
+
+    @@unique([attributeId, value])
+    @@map("attribute_values")
+}
