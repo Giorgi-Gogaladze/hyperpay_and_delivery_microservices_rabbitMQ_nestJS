@@ -1,15 +1,15 @@
 model Brand {
-    id String @id @default(uuid()) @db.Uuid
-    name String @unique
-    slug String @unique
-    logoImg String?
+    id           String  @id @default(uuid()) @db.Uuid
+    name         String  @unique
+    slug         String  @unique
+    logoImg      String?
     logoPublicId String?
-    description String? @default("No dascription provided") @db.Text
-    isActive Boolean @default(true)
+    description  String? @default("No dascription provided") @db.Text
+    isActive     Boolean @default(true)
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    @@map("brands")
     @@index([name])
+    @@map("brands")
 }
