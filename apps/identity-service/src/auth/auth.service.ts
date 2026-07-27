@@ -10,9 +10,8 @@ import { ClientProxy } from '@nestjs/microservices';
 import { MailService } from '../mail/mail.service';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { ResetPasswordDto } from './dtos/reset-password.dto';
-import { retry } from 'rxjs';
+import { safeUserAuth } from '@app/common/types/safe-user';
 
-export type SafeUser = Omit<User, 'password' | 'refreshToken'>; 
 
 export interface IAuthTokens {
     accessToken: string;
@@ -20,7 +19,7 @@ export interface IAuthTokens {
 }
 
 export interface IAuthResponse {
-    user: SafeUser;
+    user: safeUserAuth;
     tokens: IAuthTokens;
 }
 
