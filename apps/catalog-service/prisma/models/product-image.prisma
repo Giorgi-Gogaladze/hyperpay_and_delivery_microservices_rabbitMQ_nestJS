@@ -1,0 +1,9 @@
+model ProductImage {
+    id            String @id @default(uuid()) @db.Uuid
+    imageUrl      String
+    imagePublicId String
+
+    createdAt DateTime @default(now())
+
+    @@map("product_images")
+}
