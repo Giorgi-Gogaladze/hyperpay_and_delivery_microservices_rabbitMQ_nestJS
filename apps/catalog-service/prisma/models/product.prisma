@@ -1,0 +1,19 @@
+model Product {
+    id                String   @id @default(uuid()) @db.Uuid
+    name              String
+    description       String?  @default("No description provided") @db.Text
+    slug              String   @unique
+    basePrice         Decimal  @db.Decimal(10, 2)
+    discountPercent   Int?     @default(0)
+    thumbnailUrl      String?
+    thumbnailPublicId String?
+    isActive          Boolean? @default(true)
+    views             Int      @default(0)
+    avgRating         Float    @default(0)
+    reviewCount       Int      @default(0)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("products")
+}
