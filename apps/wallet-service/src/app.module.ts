@@ -14,7 +14,7 @@ import { PrismaModule } from '../prisma/prisma.module';
     PrismaModule,
     WalletModule,
   ],
-  
+
   controllers: [],
   providers: [],
 })

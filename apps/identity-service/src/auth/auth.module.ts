@@ -2,7 +2,7 @@ import { Inject, Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt'
-import { AuthStrategy } from './strategies/at.strategy';
+import { JwtStrategy } from '../../../../libs/common/src/strategies/jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';
@@ -38,9 +38,8 @@ import { MailModule } from '../mail/mail.module';
   controllers: [AuthController],
   providers: [
     AuthService,
-    AuthStrategy,
+    JwtStrategy,
     JwtRefreshStrategy,
-    AuthStrategy
   ]
 })
 export class AuthModule {}

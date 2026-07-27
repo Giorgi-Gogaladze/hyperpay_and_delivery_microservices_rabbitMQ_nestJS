@@ -1,10 +1,19 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
+import { JwtAuthGuard, User } from '@app/common';
+import { Wallet } from '../generated/prisma/client';
 
 @Controller('wallet')
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
+
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getMyWallet(@User('id') userId: string): Promise<Wallet>{
+    return this.walletService.findByUserId(userId);
+  }
 
   @EventPattern('user.created')
   async handleUserCreatd(
@@ -21,7 +30,7 @@ export class WalletController {
 
       console.error('wallet creation failed:', error);
 
-      channel.nack(originalMsg, false, false)//თუ შეცდომა მოხდა, ეუბნები RabbitMQ-ს "ვერ დავამუშავე, ისევ რიგში ჩააბრუნე. პარამეტრები: (მესიჯი, multiple, requeue)
+      channel.nack(originalMsg, false, false)//თუ შეცდომა მოხდა, ვეუბნები RabbitMQ-ს "ვერ დავამუშავე, ისევ რიგში ჩააბრუნე. პარამეტრები: (მესიჯი, multiple, requeue)
     }
 
   }

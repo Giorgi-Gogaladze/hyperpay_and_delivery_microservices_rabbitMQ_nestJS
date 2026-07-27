@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
+import { Wallet } from '../generated/prisma/client';
 
 @Injectable()
 export class WalletService {
@@ -22,6 +23,19 @@ export class WalletService {
        })
 
        this.logger.log(`Wallet created for user ${userId}`);
+    }
+
+
+    async findByUserId(userId: string): Promise<Wallet>{
+        const wallet = await this.prisma.wallet.findUnique({
+            where: { userId }
+        });
+
+        if(!wallet){
+            throw new NotFoundException('Wallet not found')
+        };
+
+        return wallet;
     }
 }
           
