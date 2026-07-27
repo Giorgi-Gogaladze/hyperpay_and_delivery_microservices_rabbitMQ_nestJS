@@ -10,10 +10,7 @@ export class CreateCategoryDto {
     @IsString()
     description?: string;
 
-    @IsString()
-    slug: string; 
-
-    @Transform(({value}) => value === 'ture' || value === true)
+    @Transform(({value}) => value === 'true' || value === true)
     @IsBoolean()
     isActive?: boolean;
 
