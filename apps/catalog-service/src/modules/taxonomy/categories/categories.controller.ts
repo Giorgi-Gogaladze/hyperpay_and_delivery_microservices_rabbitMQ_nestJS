@@ -128,7 +128,7 @@ export class CategoriesController {
   };
 
 
-  async getCategoyById(id: string): Promise<Category>{
+  async getCategoryById(id: string): Promise<Category>{
     const category = await this.prisma.category.findUnique({
       where: { id },
       include: {
@@ -143,5 +143,20 @@ export class CategoriesController {
     }
     return category;
   };
+
+
+  async deleteCategory(id: string): Promise<{message: string}>{
+    const category = await this.getCategoryById(id);
+
+    if(category.thumbnailPublicId){
+      await this.cloudinaryService.deleteImage(category.thumbnailPublicId);
+    }
+    
+    await this.prisma.category.delete({
+      where: {id},
+    });
+
+    return { message: `Category "${category.name}" successfully deleted` };
+  }
 
 }
