@@ -114,4 +114,34 @@ export class CategoriesController {
 
   }
 
+
+  async getAllCategories(): Promise<Category[]>{
+    return this.prisma.category.findMany({
+      where: {isActive: true},
+      orderBy: { createdAt: 'desc'},
+      include: {
+        _count: {
+          select: {products: true}
+        }
+      }
+    })
+  };
+
+
+  async getCategoyById(id: string): Promise<Category>{
+    const category = await this.prisma.category.findUnique({
+      where: { id },
+      include: {
+        _count: {
+          select: { products: true },
+        },
+      },
+    });
+
+    if (!category) {
+      throw new NotFoundException(`Category with id "${id}" not found`);
+    }
+    return category;
+  };
+
 }
