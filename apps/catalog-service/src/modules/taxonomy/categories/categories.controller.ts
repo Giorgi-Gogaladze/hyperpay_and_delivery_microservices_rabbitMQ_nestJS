@@ -1,9 +1,10 @@
-import { ConflictException, Controller } from '@nestjs/common';
+import { ConflictException, Controller, NotFoundException } from '@nestjs/common';
 import { CloudinaryService } from '../../../shared/cloudinary/cloudinary.service';
 import { CreateCategoryDto } from './dtos/create-category.dto';
 import { Category } from '../../../generated/prisma/client';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import slugify from 'slugify'
+import { UpdateCategoryDto } from './dtos/update-category.dto';
 
 @Controller('categories')
 export class CategoriesController {
@@ -12,7 +13,10 @@ export class CategoriesController {
     private readonly cloudinaryService: CloudinaryService, 
   ){}
 
-  async createCategory(dto: CreateCategoryDto, file: Express.Multer.File): Promise<Category>{
+  async createCategory(
+    dto: CreateCategoryDto, 
+    file?: Express.Multer.File
+  ): Promise<Category>{
     const existingCategory = await this.prisma.category.findFirst({
       where: {name: dto.name},
     });
@@ -47,6 +51,67 @@ export class CategoriesController {
     });
 
     return newCategory;
+  }
+
+  
+
+  async updateCategoy(
+    id: string, 
+    dto: UpdateCategoryDto,
+    file?: Express.Multer.File
+  ): Promise<Category>{
+    const existing = await this.prisma.category.findUnique({
+      where: {id},
+    });
+
+    if(!existing){
+      throw new NotFoundException('Categoy not found')
+    };
+
+    let categorySlug = existing.slug;
+    if(dto.name && dto.name !== existing.name){
+      const nameTaken = await this.prisma.category.findFirst({
+        where: {
+          name: dto.name,
+          NOT: {id}
+        },
+      });
+
+      if (nameTaken) {
+        throw new ConflictException(`Category with name "${dto.name}" already exists`);
+      }
+
+      categorySlug = slugify(dto.name, {
+        lower: true,
+        replacement: '-',
+        strict: true
+      });
+    };
+
+    let thumbnailUrl = existing.thumbnailUrl;
+    let thumbnailPublicId = existing.thumbnailPublicId;
+
+    if(file){
+      if(existing.thumbnailPublicId){
+        await this.cloudinaryService.deleteImage(existing.thumbnailPublicId);
+      }
+
+      const uplaodRes = await this.cloudinaryService.uploadImage(file, 'categories');
+      thumbnailUrl = uplaodRes.secure_url;
+      thumbnailPublicId = uplaodRes.public_id;
+    };
+
+    return this.prisma.category.update({
+      where: {id},
+      data: {
+        ...(dto.name && {name: dto.name, slug: categorySlug}),
+        ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+        thumbnailPublicId,
+        thumbnailUrl
+      }
+    })
+
   }
 
 }
