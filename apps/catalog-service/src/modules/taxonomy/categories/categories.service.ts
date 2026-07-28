@@ -34,7 +34,7 @@ export class CategoriesService {
     let thumbnailUrl = null;
     let thumbnailPublicId = null;
     if(file){
-      const uploadRes = await this.cloudinaryService.uploadImage(file);
+      const uploadRes = await this.cloudinaryService.uploadImage(file, 'categories');
       thumbnailUrl = uploadRes.secure_url;
       thumbnailPublicId = uploadRes.public_id;
     }
