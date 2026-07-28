@@ -1,9 +1,12 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Patch, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { Category } from '../../../generated/prisma/client';
 import { FileInterceptor } from '@nestjs/platform-express'
 import { CreateCategoryDto } from './dtos/create-category.dto';
 import { UpdateCategoryDto } from './dtos/update-category.dto';
+import { JwtAuthGuard } from '@app/common';
+import { RolesGuard } from '@app/common/guards/roles.guard';
+import { Role, Roles } from '@app/common/decorators/roles.decorator';
 
 
 @Controller('categories')
@@ -23,6 +26,8 @@ export class CategoriesController {
   }
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @UseInterceptors(FileInterceptor('file'))
   async createCategory(
     @Body() dto: CreateCategoryDto,
@@ -33,6 +38,8 @@ export class CategoriesController {
 
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @UseInterceptors(FileInterceptor('file'))
   async updateCategory(
     @Param('id', ParseUUIDPipe) id: string,
@@ -43,6 +50,8 @@ export class CategoriesController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @HttpCode(HttpStatus.OK)
   async deleteCategory(
     @Param('id', ParseUUIDPipe) id: string,
