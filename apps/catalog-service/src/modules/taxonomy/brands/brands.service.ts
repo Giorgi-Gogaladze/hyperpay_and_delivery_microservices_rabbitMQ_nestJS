@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { CloudinaryService } from '../../../shared/cloudinary/cloudinary.service';
 import { CreateBrandDto } from './dtos.ts/create-brand.dto';
@@ -47,8 +47,30 @@ export class BrandsService {
                 logoImg, 
                 logoPublicId
             }
-        })
+        })        
+    }
 
-        
+    
+    async getAllBrands(): Promise<Brand[] | []>{
+        return await this.prisma.brand.findMany({
+            where: {isActive: true},
+            orderBy: {createdAt: 'desc'},
+            include: {
+                _count: {
+                    select: {products: true}
+                }
+            }
+        })
+    }
+
+    async getById(id: string): Promise<Brand>{
+        const brand = await this.prisma.brand.findUnique({
+            where: {id},
+        });
+
+        if(!brand){
+            throw new NotFoundException('Brand not found');
+        };
+        return brand;
     }
 }
