@@ -132,6 +132,28 @@ export class BrandsService {
             logoPublicId,
             },
         });
+    };
+
+
+    async deleteBrand(id: string): Promise<{message: string}>{
+        const existing = await this.prisma.brand.findUnique({
+            where: {id},
+        });
+
+        if (!existing) {
+            throw new NotFoundException(`brand with id: ${id} not found`);
+        };
+
+        await this.prisma.brand.delete({
+            where: {id},
+        });
+
+        if(existing.logoPublicId){
+            await this.cloudinaryService.deleteImage(existing.logoPublicId);
+        }
+
+
+        return {message: 'Brand deleted successfully'};
     }
 
 
