@@ -36,6 +36,7 @@ export class CategoriesController {
     return this.categoriesService.createCategory(dto, file);
   }
 
+  
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
