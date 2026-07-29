@@ -4,6 +4,8 @@ import { CloudinaryService } from '../../../shared/cloudinary/cloudinary.service
 import { CreateBrandDto } from './dtos.ts/create-brand.dto';
 import { Brand } from '../../../generated/prisma/client';
 import slugify from 'slugify'
+import { UpdateBrandDto } from './dtos.ts/update-brand.dto';
+import { exist } from 'joi';
 
 @Injectable()
 export class BrandsService {
@@ -73,4 +75,64 @@ export class BrandsService {
         };
         return brand;
     }
+
+    async updateBrand(
+        id: string,
+        dto: UpdateBrandDto,
+        file?: Express.Multer.File,
+    ): Promise<Brand> {
+        const existingBrand = await this.prisma.brand.findUnique({
+            where: { id },
+        });
+
+        if (!existingBrand) {
+            throw new NotFoundException('Brand not found');
+        }
+
+        let brandSlug = existingBrand.slug;
+        let logoImg = existingBrand.logoImg;
+        let logoPublicId = existingBrand.logoPublicId;
+
+        if (dto.name && dto.name !== existingBrand.name) {
+            const nameTaken = await this.prisma.brand.findFirst({
+            where: {
+                name: dto.name,
+                NOT: { id },
+            },
+            });
+
+            if (nameTaken) {
+            throw new ConflictException(`Brand with name "${dto.name}" already exists`);
+            }
+
+            brandSlug = slugify(dto.name, {
+            strict: true,
+            lower: true,
+            replacement: '-',
+            });
+        }
+
+        if (file) {
+            if (logoPublicId) {
+            await this.cloudinaryService.deleteImage(logoPublicId);
+            }
+
+            const uploadRes = await this.cloudinaryService.uploadImage(file, 'brands');
+            logoImg = uploadRes.secure_url;
+            logoPublicId = uploadRes.public_id;
+        }
+
+        return this.prisma.brand.update({
+            where: { id },
+            data: {
+            ...(dto.name && { name: dto.name, slug: brandSlug }),
+            ...(dto.description !== undefined && { description: dto.description }),
+            ...(dto.isActive !== undefined && { isActive: dto.isActive }),
+            logoImg,
+            logoPublicId,
+            },
+        });
+    }
+
+
 }
