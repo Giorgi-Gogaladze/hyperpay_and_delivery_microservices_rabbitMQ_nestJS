@@ -5,7 +5,6 @@ import { CreateBrandDto } from './dtos.ts/create-brand.dto';
 import { Brand } from '../../../generated/prisma/client';
 import slugify from 'slugify'
 import { UpdateBrandDto } from './dtos.ts/update-brand.dto';
-import { exist } from 'joi';
 
 @Injectable()
 export class BrandsService {
@@ -22,7 +21,7 @@ export class BrandsService {
             where: {name: dto.name},
         });
 
-        if(!existing){
+        if(existing){
             throw new ConflictException(`Brand with name: ${dto.name} already exist`)
         };
 
@@ -68,6 +67,11 @@ export class BrandsService {
     async getById(id: string): Promise<Brand>{
         const brand = await this.prisma.brand.findUnique({
             where: {id},
+            include: {
+                _count: {
+                    select: {products: true}
+                }
+            }
         });
 
         if(!brand){
@@ -151,7 +155,6 @@ export class BrandsService {
         if(existing.logoPublicId){
             await this.cloudinaryService.deleteImage(existing.logoPublicId);
         }
-
 
         return {message: 'Brand deleted successfully'};
     }
