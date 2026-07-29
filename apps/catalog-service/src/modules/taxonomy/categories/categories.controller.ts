@@ -7,6 +7,7 @@ import { UpdateCategoryDto } from './dtos/update-category.dto';
 import { JwtAuthGuard } from '@app/common';
 import { RolesGuard } from '@app/common/guards/roles.guard';
 import { Role, Roles } from '@app/common/decorators/roles.decorator';
+import { createImageValidationPipe } from '@app/common/pipes/image-validation.pipe';
 
 
 @Controller('categories')
@@ -31,7 +32,7 @@ export class CategoriesController {
   @UseInterceptors(FileInterceptor('file'))
   async createCategory(
     @Body() dto: CreateCategoryDto,
-    @UploadedFile() file?: Express.Multer.File
+    @UploadedFile(createImageValidationPipe({isRequired: false})) file?: Express.Multer.File
   ): Promise<Category>{
     return this.categoriesService.createCategory(dto, file);
   }
@@ -45,7 +46,7 @@ export class CategoriesController {
   async updateCategory(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateCategoryDto,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFile(createImageValidationPipe({isRequired: false})) file?: Express.Multer.File,
   ): Promise<Category> {
     return this.categoriesService.updateCategoy(id, dto, file);
   }
