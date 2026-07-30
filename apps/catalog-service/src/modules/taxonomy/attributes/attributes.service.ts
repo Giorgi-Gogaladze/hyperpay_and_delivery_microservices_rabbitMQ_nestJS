@@ -28,7 +28,7 @@ export class AttributesService {
     }
 
 
-    async getAllAttribtues(): Promise<Attribute[]>{
+    async getAllAttributes(): Promise<Attribute[]>{
         return this.prisma.attribute.findMany({
             orderBy: { createdAt: 'desc'},
             include: {
