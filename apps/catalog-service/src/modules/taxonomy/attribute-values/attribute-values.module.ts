@@ -5,5 +5,6 @@ import { AttributeValuesController } from './attribute-values.controller';
 @Module({
   controllers: [AttributeValuesController],
   providers: [AttributeValuesService],
+  exports: [AttributeValuesService]
 })
 export class AttributeValuesModule {}
