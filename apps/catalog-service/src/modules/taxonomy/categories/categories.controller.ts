@@ -37,7 +37,6 @@ export class CategoriesController {
     return this.categoriesService.createCategory(dto, file);
   }
 
-  
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -50,6 +49,7 @@ export class CategoriesController {
   ): Promise<Category> {
     return this.categoriesService.updateCategoy(id, dto, file);
   }
+  
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
