@@ -71,6 +71,7 @@ export class AttributeValuesService {
             where: { id },
             data: { value: dto.value },
         });
+        
     }
 
 

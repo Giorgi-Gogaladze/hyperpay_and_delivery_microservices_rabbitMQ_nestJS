@@ -4,7 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from '../prisma/prisma.module';
 import { TaxonomyModule } from './modules/taxonomy/taxonomy.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
-import { ReviewsModule } from './modules/reviews/reviews.module';
+import { ReviewModule } from './modules/review/review.module';
 
 @Module({
   imports: [
@@ -16,7 +16,7 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
     PrismaModule,
     TaxonomyModule,
     CatalogModule,
-    ReviewsModule,
+    ReviewModule,
   ],
   controllers: [],
   providers: [],
