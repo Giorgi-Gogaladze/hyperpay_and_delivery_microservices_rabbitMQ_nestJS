@@ -1,4 +1,4 @@
-import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { CreateReviewDto } from './dtos/create-review.dto';
 import { Review } from '../../../generated/prisma/client';
@@ -70,6 +70,33 @@ export class ReviewsService {
 
 
 
+    async deleteReview(
+        reviewId: string,
+        userId: string,
+        isAdmin: boolean = false,
+    ): Promise<{message: string}>{
+        const review = await this.prisma.review.findUnique({
+            where: { id: reviewId },
+        });
+
+        if (!review) {
+            throw new NotFoundException('Review not found');
+        };
+
+        if (review.userId !== userId && !isAdmin) {
+            throw new ForbiddenException('You can only delete your own reviews');
+        }
+
+        await this.prisma.review.delete({
+            where: { id: reviewId },
+        });
+
+        await this.updateAvgRating(review.productId);
+
+        return {
+            message: 'Review deleted successfully'
+        };
+    }
 
 
     async updateAvgRating(productId: string){
@@ -87,4 +114,5 @@ export class ReviewsService {
             },
         });
     }
+    
 }

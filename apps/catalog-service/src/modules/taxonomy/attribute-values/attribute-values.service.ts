@@ -93,10 +93,6 @@ export class AttributeValuesService {
             );
        }
 
-       await this.prisma.attributeValue.delete({
-        where: {id: attValueid}
-       });
-
        return {
         message: 'AttributeValue removed successfully'
        }
