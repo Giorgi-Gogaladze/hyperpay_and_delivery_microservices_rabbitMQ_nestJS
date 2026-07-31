@@ -2,7 +2,7 @@ import { Inject, Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt'
-import { JwtStrategy } from '../../../../libs/common/src/strategies/jwt.strategy';
+import { JwtStrategy } from '@app/common'; 
 import { PassportModule } from '@nestjs/passport';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { JwtRefreshStrategy } from './strategies/jwt-refresh.strategy';

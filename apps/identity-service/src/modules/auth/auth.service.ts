@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, ForbiddenException, Inject, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { PrismaService } from '../../../prisma/prisma.service'; 
 import { RegisterDto } from './dtos/register.dto';
-import { Role, User } from '../generated/prisma/client';
+import { Role, User } from './../../generated/prisma/client'
 import * as argon2 from 'argon2'
 import * as crypto from 'crypto'
 import { JwtService } from '@nestjs/jwt';
