@@ -1,6 +1,6 @@
 model Review {
     id      String   @id @default(uuid()) @db.Uuid
-    rating  Int? @db.Integer
+    rating  Int @db.Integer
     comment String?
     userId String @db.Uuid
 
