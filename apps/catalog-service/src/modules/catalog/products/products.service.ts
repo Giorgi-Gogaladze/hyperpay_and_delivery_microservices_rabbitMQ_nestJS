@@ -4,11 +4,13 @@ import { CloudinaryService } from '../../../shared/cloudinary/cloudinary.service
 import { CreateProductDto } from './dtos/create-product.dto';
 import slugify from 'slugify';
 import { Product } from '../../../generated/prisma/client';
+import { ViewsService } from '../../../views/views.service';
 
 @Injectable()
 export class ProductsService {
     constructor(
         private readonly prisma: PrismaService,
+        private readonly viewsSerice: ViewsService,
         private readonly cloudinaryService: CloudinaryService,
     ){}
 
