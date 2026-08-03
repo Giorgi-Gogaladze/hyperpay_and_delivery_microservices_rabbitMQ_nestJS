@@ -68,6 +68,20 @@ export class ProductsService {
     }
 
 
+    async findOne(productId: string, clientIp): Promise<Product>{
+        const product = await this.prisma.product.findUnique({
+            where: { id: productId },
+            include: { variants: true, images: true },
+        });
+
+        if (!product) {
+            throw new NotFoundException(`product with id ${productId} not found`);
+        }
+
+        this.viewsSerice.incrementViews(productId, clientIp);
+
+        return product;
+    }
     
 
 }
