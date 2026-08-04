@@ -68,6 +68,10 @@ export class ProductsService {
     }
 
 
+    async getAllProducts():Promise<Product[] | []>{
+    }
+
+
     async findOne(productId: string, clientIp): Promise<Product>{
         const product = await this.prisma.product.findUnique({
             where: { id: productId },
@@ -81,7 +85,8 @@ export class ProductsService {
         this.viewsSerice.incrementViews(productId, clientIp);
 
         return product;
-    }
+    };
+
     
 
 }
