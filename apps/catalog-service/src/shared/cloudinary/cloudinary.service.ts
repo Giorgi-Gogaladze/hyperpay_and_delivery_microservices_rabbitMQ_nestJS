@@ -1,10 +1,12 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { v2 as cloudinary, UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
-import { Express } from 'express';
 import * as streamifier from 'streamifier';
 
 @Injectable()
 export class CloudinaryService {
+
+  private readonly logger = new Logger(CloudinaryService.name);
+
   async uploadImage(
     file: Express.Multer.File,
     folder: string = 'catalog',
@@ -37,6 +39,20 @@ export class CloudinaryService {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       throw new BadRequestException(`Failed to delete image from Cloudinary: ${message}`);
+    }
+  }
+
+
+  async deleteFiles(publicIds: string[]): Promise<any>{
+    if(!publicIds || publicIds.length === 0) return;
+
+    try {
+      const result = await cloudinary.api.delete_resources(publicIds);
+      this.logger.log(`Successfully deleted Cloudinary resources: ${JSON.stringify(result)}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to delete images from Cloudinary: ${publicIds.join(', ')}`, error);
+      throw error;
     }
   }
 }
