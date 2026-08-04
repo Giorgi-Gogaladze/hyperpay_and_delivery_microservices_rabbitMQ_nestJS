@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { CloudinaryService } from '../../../shared/cloudinary/cloudinary.service';
 import { CreateProductDto } from './dtos/create-product.dto';
@@ -12,12 +12,14 @@ import { SortOrder } from '../../../generated/prisma/internal/prismaNamespace';
 
 @Injectable()
 export class ProductsService {
+
+    private readonly logger = new Logger(ProductsService.name);
+
     constructor(
         private readonly prisma: PrismaService,
         private readonly viewsSerice: ViewsService,
         private readonly cloudinaryService: CloudinaryService,
     ){}
-
 
 
     async createProduct(
@@ -151,7 +153,7 @@ export class ProductsService {
     };
 
 
-    
+
 
     async findOne(productId: string, clientIp): Promise<Product>{
         const product = await this.prisma.product.findUnique({
@@ -178,6 +180,54 @@ export class ProductsService {
         return product;
     };
 
+
+    async deleteProduct(
+        productId: string
+    ): Promise<{message: string}>{
+        const product = await this.prisma.product.findFirst({
+            where: {id: productId},
+            include: {
+                variants: {
+                    include: {
+                        images: true
+                    }
+                }
+            }
+        });
+
+        if(!product){
+            throw new NotFoundException('Product not found');
+        }
+
+        const publidIdsToDelete: string[] = [];
+        
+        if(product.thumbnailPublicId){
+            publidIdsToDelete.push(product.thumbnailPublicId);
+        }
+
+        for(const variant of product.variants){
+            if(variant.images && variant.images.length > 0){
+                for(const img of variant.images){
+                    if(img.imagePublicId){
+                        publidIdsToDelete.push(img.imagePublicId)
+                    }
+                }
+            }
+        };
+
+        await this.prisma.product.delete({
+            where: { id: productId },
+        });
+
+        if(publidIdsToDelete.length > 0){
+            this.cloudinaryService.deleteFiles(publidIdsToDelete).catch((error: any) => {
+                this.logger.log(`failed to delete cloudinary images for product ${productId}`, error)
+            });
+        }
+        
+        return { message: 'product and associated variant_images deleted successfully' };
+        
+    }
     
 
 }
