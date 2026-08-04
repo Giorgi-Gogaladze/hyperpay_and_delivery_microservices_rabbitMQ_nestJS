@@ -30,6 +30,7 @@ export class QueryDto {
 
     @IsOptional()
     @IsString()
+    @Transform(({value}) => value?.trim())
     search?: string;
 
     @IsOptional()
