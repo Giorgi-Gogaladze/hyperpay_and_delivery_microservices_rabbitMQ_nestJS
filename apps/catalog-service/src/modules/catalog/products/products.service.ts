@@ -8,7 +8,8 @@ import { ViewsService } from '../../../views/views.service';
 import { QueryDto, SortBy } from './dtos/query.dto';
 import { PaginatedProductsResponcse } from '../../../interfaces/paginated_Products_response.interface';
 import { SortOrder } from '../../../generated/prisma/internal/prismaNamespace';
-
+import { UpdateProductDto } from './dtos/update-product.dto';
+import { IProductWithNames } from '../../../interfaces/product-with-names.interface';
 
 @Injectable()
 export class ProductsService {
@@ -179,6 +180,84 @@ export class ProductsService {
 
         return product;
     };
+
+
+
+    async updateProduct(
+        id: string,
+        dto: UpdateProductDto,
+        file?: Express.Multer.File
+    ): Promise<IProductWithNames>{
+        const [currentProduct, existingProduct] = await Promise.all([
+            this.prisma.product.findUnique({ where: {id}}),
+            dto.name ? this.prisma.product.findFirst({where: {name: dto.name}}) : Promise.resolve(null),
+        ]);
+
+        if(!currentProduct){
+            throw new NotFoundException(`product with id ${id} not found`);
+        }
+
+        if(existingProduct && existingProduct.id !== id){
+            throw new ConflictException(`product with name ${dto.name} already exist `);
+        }
+
+        if (dto.brandId) {
+            const brand = await this.prisma.brand.findUnique({ where: { id: dto.brandId } });
+            if (!brand) throw new NotFoundException('Brand not found');
+        }
+
+        if (dto.categoryId) {
+            const category = await this.prisma.category.findUnique({ where: { id: dto.categoryId } });
+            if (!category) throw new NotFoundException('Category not found');
+        }
+
+        let newSlug: string | null = null;
+        if(dto.name){
+            newSlug = slugify(dto.name, {
+                lower: true,
+                strict: true,
+                replacement:'-'
+            });
+        }
+
+        let thumbnailUrl = currentProduct.thumbnailUrl;
+        let thumbnailPublicId = currentProduct.thumbnailPublicId;
+
+        if(file){
+            const uploadResult = await this.cloudinaryService.uploadImage(file, 'products/thumbnails');
+        
+
+        if(currentProduct.thumbnailPublicId){
+            this.cloudinaryService.deleteImage(currentProduct.thumbnailPublicId).catch((err) => {
+                this.logger.error(`failed to delete old thumbnail: ${currentProduct.thumbnailPublicId}`, err)
+            });
+        };
+
+            thumbnailPublicId = uploadResult.public_id;
+            thumbnailUrl = uploadResult.secure_url;
+        };
+
+        const updatedProduct = await this.prisma.product.update({
+            where: {id},
+            data: {
+                ...dto,
+                ...(newSlug && { slug: newSlug }),
+                thumbnailUrl,
+                thumbnailPublicId,
+            },
+            include: {
+                brand: {
+                    select: { name: true},
+                },
+                category: {
+                    select: {name: true}
+                },
+            }
+        });
+
+        return updatedProduct
+    }
+
 
 
     async deleteProduct(
