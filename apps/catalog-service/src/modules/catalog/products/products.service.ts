@@ -10,6 +10,7 @@ import { PaginatedProductsResponcse } from '../../../interfaces/paginated_Produc
 import { SortOrder } from '../../../generated/prisma/internal/prismaNamespace';
 import { UpdateProductDto } from './dtos/update-product.dto';
 import { IProductWithNames } from '../../../interfaces/product-with-names.interface';
+import { promises } from 'dns';
 
 @Injectable()
 export class ProductsService {
@@ -26,16 +27,15 @@ export class ProductsService {
     async createProduct(
         dto: CreateProductDto,
         file?: Express.Multer.File
-    ): Promise<Product>{
+    ): Promise<any>{
         const [existingProduct, brand, category] = await Promise.all([
             this.prisma.product.findFirst({where: {name: dto.name}}),
-            this.prisma.product.findFirst({where: {categoryId: dto.categoryId}}),
-            this.prisma.product.findFirst({where: {brandId: dto.brandId}}),
+            this.prisma.category.findFirst({where: {id: dto.categoryId}}),
+            this.prisma.brand.findFirst({where: {id: dto.brandId}}),
         ]);
 
         if (existingProduct) throw new ConflictException('Product name already exists');
-        if (!brand) throw new NotFoundException
-        ('Brand not found');
+        if (!brand) throw new NotFoundException('Brand not found');
         if (!category) throw new NotFoundException('Category not found');
 
         const slug = slugify(dto.name, {
@@ -158,7 +158,10 @@ export class ProductsService {
 
     async findOne(productId: string, clientIp): Promise<Product>{
         const product = await this.prisma.product.findUnique({
-            where: { id: productId },
+            where: { 
+                id: productId,
+                isActive: true,
+            },
             include: { 
                 variants: {
                     include: {
@@ -258,6 +261,73 @@ export class ProductsService {
         return updatedProduct
     }
 
+    async toggleActiveStatus(productId: string): Promise<Product>{
+        const product = await this.prisma.product.findUnique({ where: {id: productId}});
+        if(!product) throw new NotFoundException('Product not found');
+
+        return await this.prisma.product.update({
+            where: {id: productId},
+            data: {
+                isActive: !product.isActive
+            }
+        })
+    }
+
+
+    async findRelatedProducts(
+        productId: string,
+        limit: number = 4,
+    ): Promise<Product[]>{
+        const currentProduct = await this.prisma.product.findUnique({
+            where: {id: productId},
+            select: {brandId: true, categoryId: true}
+        });
+
+        if (!currentProduct) {
+            throw new NotFoundException(`Product with ID ${productId} not found`);
+        }
+
+        const sameCategoryProducts = await this.prisma.product.findMany({
+            where: {
+                categoryId: currentProduct.categoryId,
+                id: {not: productId},
+                isActive: true
+            },
+            take: limit,
+            include: {
+                brand: {select: {name: true}},
+                category: {select: {name: true}}
+            },
+            orderBy: {
+                views: 'desc'
+            }
+        });
+
+        if (sameCategoryProducts.length >= limit) {
+            return sameCategoryProducts;
+        }
+
+        const existingIds = [productId, ...sameCategoryProducts.map((p) => p.id)];
+        const remainingLimit = limit - sameCategoryProducts.length;
+
+        const sameBrandProducts = await this.prisma.product.findMany({
+            where: {
+            brandId: currentProduct.brandId,
+            id: { notIn: existingIds }, 
+            isActive: true,
+            },
+            take: remainingLimit,
+            include: {
+            brand: { select: { name: true } },
+            category: { select: { name: true } },
+            },
+            orderBy: {
+            views: 'desc',
+            },
+        });
+
+        return [...sameCategoryProducts, ...sameBrandProducts];
+    }
 
 
     async deleteProduct(
