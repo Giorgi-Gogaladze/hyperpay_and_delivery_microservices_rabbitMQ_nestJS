@@ -13,8 +13,8 @@ export class CreateProductDto {
     description: string;
 
     @IsNotEmpty()
-    @IsNumber()
-    @Min(0)
+    @IsNumber({}, { message: 'basePrice must be a valid number' })
+    @Min(0, { message: 'basePrice cannot be negative' })
     @Type(() => Number)
     basePrice: number;
 
@@ -22,17 +22,18 @@ export class CreateProductDto {
     @IsOptional()
     @IsBoolean()
     @Transform(({ value }) => {
+        if (value === undefined || value === null) return undefined;
         if (value === 'true' || value === true) return true;
         if (value === 'false' || value === false) return false;
-        return true;
+        return value;
     })
     isActive?: boolean;
 
-    @IsUUID()
+    @IsUUID('4', { message: 'brandId must be a valid UUID v4' })
     @IsNotEmpty()
     brandId: string;
 
-    @IsUUID()
+    @IsUUID('4', { message: 'categoryId must be a valid UUID v4' })
     @IsNotEmpty()
     categoryId: string;
 

@@ -10,7 +10,6 @@ import { PaginatedProductsResponcse } from '../../../interfaces/paginated_Produc
 import { SortOrder } from '../../../generated/prisma/internal/prismaNamespace';
 import { UpdateProductDto } from './dtos/update-product.dto';
 import { IProductWithNames } from '../../../interfaces/product-with-names.interface';
-import { promises } from 'dns';
 
 @Injectable()
 export class ProductsService {
@@ -156,8 +155,8 @@ export class ProductsService {
 
 
 
-    async findOne(productId: string, clientIp): Promise<Product>{
-        const product = await this.prisma.product.findUnique({
+    async findOne(productId: string, clientIp: string): Promise<Product>{
+        const product = await this.prisma.product.findFirst({
             where: { 
                 id: productId,
                 isActive: true,
@@ -312,17 +311,17 @@ export class ProductsService {
 
         const sameBrandProducts = await this.prisma.product.findMany({
             where: {
-            brandId: currentProduct.brandId,
-            id: { notIn: existingIds }, 
-            isActive: true,
+                brandId: currentProduct.brandId,
+                id: { notIn: existingIds }, 
+                isActive: true,
             },
             take: remainingLimit,
             include: {
-            brand: { select: { name: true } },
-            category: { select: { name: true } },
+                brand: { select: { name: true } },
+                category: { select: { name: true } },
             },
             orderBy: {
-            views: 'desc',
+                views: 'desc',
             },
         });
 
