@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsNotEmpty, IsNumber, Min } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsUUID, Min } from "class-validator";
 
 export class CreateProductVariantDto {
     @IsNumber()
@@ -13,5 +13,10 @@ export class CreateProductVariantDto {
     @IsNotEmpty()
     @Min(0)
     stock: number;
+
+    @IsArray()
+    @IsUUID('4', { each: true })
+    @IsOptional()
+    attributeValueIds?: string[];
     
 }
