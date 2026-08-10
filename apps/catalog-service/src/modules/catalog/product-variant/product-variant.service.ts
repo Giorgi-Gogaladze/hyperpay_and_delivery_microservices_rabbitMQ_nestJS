@@ -120,5 +120,25 @@ export class ProductVariantService {
             where: { id: variantId },
             data: updateData,
         });
+    };
+
+
+
+    async deleteProductVariant(variantId: string): Promise<{ message: string }> {
+    const variant = await this.prisma.productVariant.findUnique({
+      where: { id: variantId },
+    });
+
+    if (!variant) {
+      throw new NotFoundException(`Product variant with ID ${variantId} not found`);
     }
+
+    await this.prisma.productVariant.delete({
+      where: { id: variantId },
+    });
+
+    return {
+      message: `product variant with sku '${variant.sku}' successfully deleted`,
+    };
+  }
 }
