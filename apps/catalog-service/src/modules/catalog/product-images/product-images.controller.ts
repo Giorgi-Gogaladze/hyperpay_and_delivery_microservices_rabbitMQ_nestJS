@@ -7,6 +7,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { RolesGuard } from '@app/common/guards/roles.guard';
 import { Role, Roles } from '@app/common/decorators/roles.decorator';
 import { ProductImage } from '../../../generated/prisma/client';
+import { Public } from '@app/common/decorators/public.decorator';
 
 @UseGuards(AuthGuard, RolesGuard)
 @Roles(Role.ADMIN)
@@ -24,6 +25,7 @@ export class ProductImagesController {
     return await this.productImagesService.uploadImages(files, variantId);
   }
 
+  @Public()
   @Get(':variantId')
   async getVariantImages(
     @Param('variantId', ParseUUIDPipe) variantId: string,
