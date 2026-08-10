@@ -2,6 +2,7 @@ import { ConflictException, Injectable, NotFoundException } from '@nestjs/common
 import { PrismaService } from '../../../../prisma/prisma.service';
 import { CreateProductVariantDto } from './dtos/create-product-variant.dto';
 import { Prisma, ProductVariant } from '../../../generated/prisma/client';
+import { UpdateProductVariantDto } from './dtos/update-product-variant.dto';
 
 @Injectable()
 export class ProductVariantService {
@@ -9,7 +10,7 @@ export class ProductVariantService {
         private readonly prisma: PrismaService
     ){}
 
-    private genereateSku(values: string[], prodName: string): string{
+    private generateSku(values: string[], prodName: string): string{
         const name = prodName.slice(0, 3).toUpperCase();
         const parts = values.length > 0
         ? values.map((part) => {
@@ -34,7 +35,13 @@ export class ProductVariantService {
             throw new NotFoundException('Product not found');
         }
 
-        const generatedSku = this.genereateSku(dto.attributeValueIds || [], product.name);
+        const selectedValues = await this.prisma.attributeValue.findMany({
+            where: {id: { in: dto.attributeValueIds}} 
+        });
+
+        const valNames = selectedValues.map(v => v.value).sort();
+
+        const generatedSku = this.generateSku(valNames || [], product.name);
 
         const isDuplicateSku = await this.prisma.productVariant.findUnique({
             where: { sku: generatedSku}
@@ -73,5 +80,45 @@ export class ProductVariantService {
     }
 
 
+    
+    async updateProductVariant(
+        variantId: string,
+        dto: UpdateProductVariantDto,
+    ): Promise<ProductVariant> {
+        const existingVariant = await this.prisma.productVariant.findUnique({
+            where: { id: variantId },
+        });
 
+        const existingProduct = await this.prisma.product.findUnique({
+            where: { id: existingVariant?.productId },
+        });
+
+        if (!existingVariant) {
+        throw new NotFoundException(`Product variant with ID ${variantId} not found`);
+        }
+
+        let generatedSku = null;
+
+        if (dto.attributeValueIds && dto.attributeValueIds.length > 0) {
+            const selectedValues = await this.prisma.attributeValue.findMany({
+                where: { id: { in: dto.attributeValueIds } }
+            });
+
+            const valNames = selectedValues.map(v => v.value).sort();
+            
+            generatedSku = this.generateSku(valNames, existingProduct.name);
+        }
+
+
+        const updateData: Prisma.ProductVariantUpdateInput = {
+        sku: generatedSku,
+        ...(dto.stock !== undefined && { stock: dto.stock }),
+        ...(dto.price !== undefined && { price: new Prisma.Decimal(dto.price) }),
+        };
+
+        return await this.prisma.productVariant.update({
+            where: { id: variantId },
+            data: updateData,
+        });
+    }
 }

@@ -126,6 +126,7 @@ export class ProductsService {
             include: {
                 brand: { select: { name: true } },
                 category: { select: { name: true } },
+                variants: { select: {id: true, sku: true, price: true, stock: true}},
                 _count: {
                 select: { reviews: true },
                 },
@@ -165,7 +166,8 @@ export class ProductsService {
                 variants: {
                     include: {
                         images: true,
-                        attributeValues: true
+                        attributeValues: true,
+                        product: true,
                     }
                 }, 
                 reviews: true,
