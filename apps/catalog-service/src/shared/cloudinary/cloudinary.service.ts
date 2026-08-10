@@ -31,6 +31,18 @@ export class CloudinaryService {
     });
   }
 
+
+  async uploadMultipleImages(
+    files: Express.Multer.File[],
+    folder: string 
+  ): Promise<UploadApiResponse[]>{
+    if(!files || files.length === 0) return [];
+
+    const uplaodPromises = files.map((file) => this.uploadImage(file, folder));
+    return Promise.all(uplaodPromises)
+
+  }
+
   async deleteImage(publicId: string): Promise<any> {
     if (!publicId) return;
 
