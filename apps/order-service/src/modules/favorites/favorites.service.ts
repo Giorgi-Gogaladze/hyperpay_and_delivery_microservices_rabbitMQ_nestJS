@@ -23,6 +23,19 @@ export class FavoritesService {
             }
         }
     };
+    
+    async getFavorites(userId: string): Promise<Favorites[]> {
+        return this.prisma.favorites.findMany({
+            where: { userId },
+        });
+    }
+
+    async clearFavorites(userId: string): Promise<{message: string}> {
+        await this.prisma.favorites.deleteMany({
+            where: { userId },
+        });
+        return { message: 'All favorites cleared' };
+    }
 
 
     async removeFavorite(userId: string, productVariantId: string): Promise<{message: string}> {
@@ -32,9 +45,4 @@ export class FavoritesService {
         return { message: 'Removed from favorites' };
     }
 
-    async getFavorites(userId: string): Promise<Favorites[]> {
-        return this.prisma.favorites.findMany({
-            where: { userId },
-        });
-}
 }
