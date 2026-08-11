@@ -3,6 +3,7 @@ import { PrismaService } from '../../../../prisma/prisma.service';
 import { CreateProductVariantDto } from './dtos/create-product-variant.dto';
 import { Prisma, ProductVariant } from '../../../generated/prisma/client';
 import { UpdateProductVariantDto } from './dtos/update-product-variant.dto';
+import { RestockProductVariantDto } from './dtos/restock.dto';
 
 @Injectable()
 export class ProductVariantService {
@@ -14,7 +15,7 @@ export class ProductVariantService {
         const name = prodName.slice(0, 3).toUpperCase();
         const parts = values.length > 0
         ? values.map((part) => {
-            part.replace(/\s+/g, '').slice(0, 5).toUpperCase()
+           return part.replace(/\s+/g, '').slice(0, 5).toUpperCase()
         }).join('-') 
         : 'DEFAULT';
 
@@ -89,12 +90,16 @@ export class ProductVariantService {
             where: { id: variantId },
         });
 
+        if (!existingVariant) {
+        throw new NotFoundException(`Product variant with ID ${variantId} not found`);
+        }
+
         const existingProduct = await this.prisma.product.findUnique({
             where: { id: existingVariant?.productId },
         });
 
-        if (!existingVariant) {
-        throw new NotFoundException(`Product variant with ID ${variantId} not found`);
+        if (!existingProduct) {
+            throw new NotFoundException('Associated product not found');
         }
 
         let generatedSku = null;
@@ -111,7 +116,7 @@ export class ProductVariantService {
 
 
         const updateData: Prisma.ProductVariantUpdateInput = {
-        sku: generatedSku,
+        ...(generatedSku && { sku: generatedSku }),
         ...(dto.stock !== undefined && { stock: dto.stock }),
         ...(dto.price !== undefined && { price: new Prisma.Decimal(dto.price) }),
         };
@@ -125,20 +130,68 @@ export class ProductVariantService {
 
 
     async deleteProductVariant(variantId: string): Promise<{ message: string }> {
-    const variant = await this.prisma.productVariant.findUnique({
-      where: { id: variantId },
-    });
+        const variant = await this.prisma.productVariant.findUnique({
+        where: { id: variantId },
+        });
 
-    if (!variant) {
-      throw new NotFoundException(`Product variant with ID ${variantId} not found`);
+        if (!variant) {
+        throw new NotFoundException(`Product variant with ID ${variantId} not found`);
+        }
+
+        await this.prisma.productVariant.delete({
+        where: { id: variantId },
+        });
+
+        return {
+        message: `product variant with sku '${variant.sku}' successfully deleted`,
+        };
+    };
+
+    
+
+    async restockProductVariant(
+        variantId: string,
+        dto: RestockProductVariantDto
+    ): Promise<ProductVariant>{
+        const variant  = await this.prisma.productVariant.findUnique({
+            where: { id: variantId },
+        });
+
+        if (!variant) {
+            throw new NotFoundException(`Product variant with ID ${variantId} not found`);
+        }
+
+        return await this.prisma.productVariant.update({
+            where: { id: variantId },  
+            data: {
+                stock: variant.stock + dto.quantity
+            }
+        })
     }
 
-    await this.prisma.productVariant.delete({
-      where: { id: variantId },
-    });
 
-    return {
-      message: `product variant with sku '${variant.sku}' successfully deleted`,
-    };
-  }
+
+    async decreaseStock(
+        variantId: string, 
+        quantity: number
+    ): Promise<ProductVariant> {
+        const variant = await this.prisma.productVariant.findUnique({
+            where: { id: variantId },
+        });
+
+        if (!variant) {
+            throw new NotFoundException(`Product variant with ID ${variantId} not found`);
+        }
+
+        if(variant.stock < quantity){
+            throw new ConflictException(`Insufficient stock for variant ${variant.sku}. Available: ${variant.stock}, requested: ${quantity}`);
+        }
+
+        return await this.prisma.productVariant.update({
+            where: {id: variantId},
+            data: {
+                stock: { decrement: quantity}
+            }
+        })
+    }
 }
