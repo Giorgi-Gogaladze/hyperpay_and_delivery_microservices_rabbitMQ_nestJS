@@ -40,6 +40,10 @@ export class ProductVariantService {
             where: {id: { in: dto.attributeValueIds}} 
         });
 
+        if (selectedValues.length !== dto.attributeValueIds.length) {
+            throw new NotFoundException('One or more attribute values not found');
+        }
+
         const valNames = selectedValues.map(v => v.value).sort();
 
         const generatedSku = this.generateSku(valNames || [], product.name);
@@ -58,7 +62,17 @@ export class ProductVariantService {
             sku: generatedSku,
             price: new Prisma.Decimal(dto.price),
             stock: dto.stock,
+            attributeValues: {
+                create: dto.attributeValueIds.map((attributeValueId) => ({
+                    attributeValueId,
+                })),
+            },
           },
+          include: {
+            attributeValues: {
+                include: {attributeValue: { include: { attribute: true}}}
+            }
+          }
         });
     };
 
