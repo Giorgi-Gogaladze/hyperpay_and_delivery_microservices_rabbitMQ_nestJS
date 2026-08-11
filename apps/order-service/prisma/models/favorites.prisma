@@ -1,0 +1,11 @@
+model Favorites {
+    id String @id @default(uuid()) @db.Uuid
+
+    userId           String @db.Uuid
+    productVariantId String @db.Uuid
+
+    createdAt DateTime @default(now())
+
+    @@unique([userId, productVariantId])
+    @@map("favorites")
+}

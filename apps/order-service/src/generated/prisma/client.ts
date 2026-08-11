@@ -57,6 +57,11 @@ export type Cart = Prisma.CartModel
  */
 export type CartItem = Prisma.CartItemModel
 /**
+ * Model Favorites
+ * 
+ */
+export type Favorites = Prisma.FavoritesModel
+/**
  * Model Order
  * 
  */

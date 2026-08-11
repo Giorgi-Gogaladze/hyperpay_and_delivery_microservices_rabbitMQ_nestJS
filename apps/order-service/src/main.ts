@@ -6,7 +6,8 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalPipes(createValidationPipe())
+  app.useGlobalPipes(createValidationPipe());
+  app.enableCors();
 
   const configService = app.get(ConfigService)
   const port = configService.getOrThrow<number>('ORDER_PORT')

@@ -387,6 +387,7 @@ export const ModelName = {
   Address: 'Address',
   Cart: 'Cart',
   CartItem: 'CartItem',
+  Favorites: 'Favorites',
   Order: 'Order',
   OrderItem: 'OrderItem'
 } as const
@@ -404,7 +405,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "address" | "cart" | "cartItem" | "order" | "orderItem"
+    modelProps: "address" | "cart" | "cartItem" | "favorites" | "order" | "orderItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -627,6 +628,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.CartItemCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.CartItemCountAggregateOutputType> | number
+        }
+      }
+    }
+    Favorites: {
+      payload: Prisma.$FavoritesPayload<ExtArgs>
+      fields: Prisma.FavoritesFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FavoritesFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoritesPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FavoritesFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoritesPayload>
+        }
+        findFirst: {
+          args: Prisma.FavoritesFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoritesPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FavoritesFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoritesPayload>
+        }
+        findMany: {
+          args: Prisma.FavoritesFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoritesPayload>[]
+        }
+        create: {
+          args: Prisma.FavoritesCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoritesPayload>
+        }
+        createMany: {
+          args: Prisma.FavoritesCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FavoritesCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoritesPayload>[]
+        }
+        delete: {
+          args: Prisma.FavoritesDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoritesPayload>
+        }
+        update: {
+          args: Prisma.FavoritesUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoritesPayload>
+        }
+        deleteMany: {
+          args: Prisma.FavoritesDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FavoritesUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FavoritesUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoritesPayload>[]
+        }
+        upsert: {
+          args: Prisma.FavoritesUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FavoritesPayload>
+        }
+        aggregate: {
+          args: Prisma.FavoritesAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFavorites>
+        }
+        groupBy: {
+          args: Prisma.FavoritesGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FavoritesGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FavoritesCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FavoritesCountAggregateOutputType> | number
         }
       }
     }
@@ -853,6 +928,16 @@ export const CartItemScalarFieldEnum = {
 } as const
 
 export type CartItemScalarFieldEnum = (typeof CartItemScalarFieldEnum)[keyof typeof CartItemScalarFieldEnum]
+
+
+export const FavoritesScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  productVariantId: 'productVariantId',
+  createdAt: 'createdAt'
+} as const
+
+export type FavoritesScalarFieldEnum = (typeof FavoritesScalarFieldEnum)[keyof typeof FavoritesScalarFieldEnum]
 
 
 export const OrderScalarFieldEnum = {
@@ -1113,6 +1198,7 @@ export type GlobalOmitConfig = {
   address?: Prisma.AddressOmit
   cart?: Prisma.CartOmit
   cartItem?: Prisma.CartItemOmit
+  favorites?: Prisma.FavoritesOmit
   order?: Prisma.OrderOmit
   orderItem?: Prisma.OrderItemOmit
 }
