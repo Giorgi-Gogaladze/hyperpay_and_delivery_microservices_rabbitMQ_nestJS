@@ -9,6 +9,7 @@ model Address {
     zipCode      String?
     isDefault    Boolean @default(false)
 
+    orders Order[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
