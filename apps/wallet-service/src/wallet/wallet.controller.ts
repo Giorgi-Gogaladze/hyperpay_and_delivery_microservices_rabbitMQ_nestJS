@@ -1,6 +1,6 @@
 import { Controller, Get, Logger, Patch, UseGuards } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
+import { Ctx, EventPattern, MessagePattern, Payload, RmqContext } from '@nestjs/microservices';
 import { JwtAuthGuard, User } from '@app/common';
 import { Wallet } from '../generated/prisma/client';
 
@@ -57,6 +57,17 @@ export class WalletController {
       }else{ 
         channel.nack(originalMsg, false, false);
       }
+    }
+  }
+
+  @MessagePattern({ cmd:'get_wallet_balance'})
+  async getMyBallance(
+    @Payload() data: { userId: string }
+  ){
+    const wallet = await this.walletService.findByUserId(data.userId);
+    return{
+      balance: wallet.balance,
+      currency: wallet.currency
     }
   }
 }

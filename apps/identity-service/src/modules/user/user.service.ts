@@ -1,7 +1,8 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { safeUser } from '@app/common/types/safe-user';
 import { UpdateUserDto } from './dtos/update-user.dto';
+import { firstValueFrom, timeout } from 'rxjs'
 
 @Injectable()
 export class UserService {
@@ -25,6 +26,27 @@ export class UserService {
 
         const {password, refreshToken, resetToken, resetTokenExpiry, ...safeUser} = user;
         return safeUser;
+    }
+
+
+    async getUserBalance(userId: string){
+        try {
+            const walletData = await firstValueFrom<{ balance: number; currency: string }>(
+                this.walletClient.send({ cmd: 'get_wallet_balance'}, {userId}).pipe(
+                    timeout(5000) //ეს ამატებს 5წამიან შუალედს პასუხამდე, რომ სამუდამოდ არ დაელოდოს
+                )
+            );
+            return {
+                userId,
+                balance: walletData.balance,
+                currency: walletData.currency
+            }
+        } catch (error: any) {
+            if (error.name === 'TimeoutError') {
+                throw new ServiceUnavailableException('Wallet service is not responding');
+            }
+            throw new NotFoundException('Wallet information could not be retrieved');
+        }
     }
 
     async updateProfile(userId: string, dto: UpdateUserDto): Promise<safeUser>{
