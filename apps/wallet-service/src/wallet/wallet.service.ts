@@ -28,7 +28,7 @@ export class WalletService {
 
     async findByUserId(userId: string): Promise<Wallet>{
         const wallet = await this.prisma.wallet.findUnique({
-            where: { userId }
+            where: { userId, status: 'ACTIVE' },
         });
 
         if(!wallet){
@@ -36,6 +36,24 @@ export class WalletService {
         };
 
         return wallet;
+    }
+
+
+    async closeMyWallet( userId: string){
+        const wallet = await this.prisma.wallet.findUnique({
+            where: {userId}
+        });
+
+        if(!wallet){
+            this.logger.warn(`Wallet for user ${userId} not found, skipping closure.`);
+        }
+
+        await this.prisma.wallet.update({
+            where: {userId},
+            data: {
+                status: 'CLOSED'
+            }
+        })
     }
 }
           

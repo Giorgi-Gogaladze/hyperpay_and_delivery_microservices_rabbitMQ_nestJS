@@ -1,4 +1,4 @@
-import { Inject, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtModule } from '@nestjs/jwt'
@@ -19,14 +19,14 @@ import { MailModule } from '../mail/mail.module';
           transport: Transport.RMQ,
           options: {
             urls: [configService.getOrThrow<string>('RABBITMQ_URL') || 'amqp://localhost:5672'],
-            queue: 'wallet_queue',  //იმ ვალეტის ქიუს სახელი, სადაც მესიჯი იგზავნება/ვარდება (რომელშიც უნდა ჩაჯდეს)
+            queue: 'wallet_queue',  //იმ ვოლეტის ქიუს სახელი, სადაც მესიჯი იგზავნება/ვარდება (რომელშიც უნდა ჩაჯდეს)
             queueOptions: {
               durable: true
             },
           },
         }),
         inject: [ConfigService],
-      }
+      },
     ]),
     JwtModule.register({
       global: true,

@@ -8,5 +8,6 @@ export * from  './strategies/jwt.strategy'
 export * from './types/safe-user'
 export * from './guards/jwt-auth.guard'
 export * from './guards/jwt-refresh.guard'
+export * from '@app/common/decorators/public.decorator'
 
 

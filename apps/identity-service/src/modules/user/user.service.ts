@@ -1,11 +1,18 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service';
 import { safeUser } from '@app/common/types/safe-user';
 import { UpdateUserDto } from './dtos/update-user.dto';
 
 @Injectable()
 export class UserService {
-    constructor( private readonly prisma: PrismaService ){}
+
+    private logger = new Logger(UserService.name);
+
+    constructor( 
+        private readonly prisma: PrismaService,
+        @Inject('PRDER_SERVICE') private readonly OrderClient: any,
+        @Inject('WALLET_SERVICE') private readonly walletClient: any
+    ){}
 
     async findById(userId: string): Promise<safeUser>{
         const user = await this.prisma.user.findUnique({
@@ -28,5 +35,28 @@ export class UserService {
 
         const {password, refreshToken, resetToken, resetTokenExpiry, ...safeUser} = user;
         return safeUser;
+    }
+
+    async deleteUser(userId: string): Promise<{message: string}>{
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        await this.prisma.user.delete({ where: { id: userId } });
+
+        try {
+            await Promise.all([
+                await this.OrderClient.emit('user.deleted', { userId }),
+                await this.walletClient.emit('user.deleted', { userId }),
+            ]);
+        } catch (error) {
+           this.logger.error(`Failed to publish user.deleted event for ${userId}`, error); 
+        }
+
+        return {
+            message: 'User deleted successfully',
+        }
     }
 }
