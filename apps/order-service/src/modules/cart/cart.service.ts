@@ -88,4 +88,31 @@ export class CartService {
         
     }
 
+
+    async removeItemFromCart(
+        itemId: string,
+        userId: string
+    ): Promise<{message: string}>{
+        const item = await this.prisma.cartItem.findFirst({
+            where: {id: itemId, cart: {userId}}
+        });
+
+        if (!item) {
+            throw new NotFoundException('Cart item not found');
+        }
+
+        await this.prisma.cartItem.delete({where: {id: itemId,} });
+        return {message: 'item removed successfully'};
+    }
+
+
+
+    async clearCart(
+        userId: string,
+    ): Promise<{message: string}>{
+        await this.prisma.cart.deleteMany({
+            where: {userId}
+        });
+        return{ message: 'Cart cleared successfully'}
+    }
 }
