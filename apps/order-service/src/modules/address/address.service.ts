@@ -45,10 +45,10 @@ export class AddressService {
     }
   }
 
-  async deleteAddress(id: string): Promise<Address> {
+  async deleteAddress(id: string, userId: string): Promise<{message: string}> {
     try {
-      return await this.prisma.address.delete({
-        where: { id },
+      await this.prisma.address.delete({
+        where: { id, userId },
       });
     } catch (error) {
       if (
@@ -58,6 +58,18 @@ export class AddressService {
         throw new NotFoundException(`Address with id ${id} not found`);
       }
       throw error;
+    }
+    return { message: 'address removed successfully'}
+  }
+
+
+  async deleteAddressByUserId(userId: string){
+    const res = await this.prisma.address.deleteMany({
+      where: {userId}
+    });
+
+    if(res.count === 0){
+      throw new NotFoundException('Address not found')
     }
   }
 }
