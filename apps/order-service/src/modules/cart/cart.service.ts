@@ -1,8 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
-import { Cart } from '../../generated/prisma/client';
+import { Cart, CartItem } from '../../generated/prisma/client';
 import { AddCartItemDto } from './dtos/add-cart-item.dto';
-import { existsSync } from 'fs';
+import { UpdateCartItemDto } from './dtos/update-cart-item.dto';
+import { CartWithItems } from '../../types/cart-with-items.type';
+
+
 
 @Injectable()
 export class CartService {
@@ -21,20 +24,20 @@ export class CartService {
     };
 
 
-    async getMyCart(userId: string){
-        const cart = await this.prisma.cart.findFirst({
+    async getMyCart(userId: string): Promise<CartWithItems>{
+        return await this.prisma.cart.upsert({
             where: { userId },
-            include: { cartItems: true }
+            update: {},
+            create: {userId},
+            include: {cartItems: true}
         });
-
-        return cart ?? {userId, cartItems: []};
     }
 
 
     async addItemToCart(
         userId: string, 
         dto: AddCartItemDto
-    ){
+    ): Promise<CartItem>{
         const cart = await this.getOrCreateCart(userId);
 
         const existingItem = await this.prisma.cartItem.findUnique({
@@ -62,7 +65,27 @@ export class CartService {
         });
     }
 
-    
+   
+    async updateItem(
+        userId: string, 
+        itemId: string, 
+        dto: UpdateCartItemDto
+    ){
+        const item = await this.prisma.cartItem.findFirst({
+            where: {id: itemId, cart: {userId}}
+        });
 
+        if (!item) {
+            throw new NotFoundException('Cart item not found');
+        }
+
+        await this.prisma.cartItem.update({
+            where: {id: itemId},
+            data: {
+                quantity: dto.quantity
+            }
+        });
+        
+    }
 
 }
