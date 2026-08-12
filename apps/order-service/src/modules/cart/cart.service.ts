@@ -70,7 +70,7 @@ export class CartService {
         userId: string, 
         itemId: string, 
         dto: UpdateCartItemDto
-    ){
+    ): Promise<CartItem>{
         const item = await this.prisma.cartItem.findFirst({
             where: {id: itemId, cart: {userId}}
         });
@@ -79,7 +79,7 @@ export class CartService {
             throw new NotFoundException('Cart item not found');
         }
 
-        await this.prisma.cartItem.update({
+        return await this.prisma.cartItem.update({
             where: {id: itemId},
             data: {
                 quantity: dto.quantity
@@ -105,9 +105,19 @@ export class CartService {
         return {message: 'item removed successfully'};
     }
 
-
-
+    
     async clearCart(
+        userId: string
+    ): Promise<{message: string}>{
+        await this.prisma.cart.deleteMany({
+            where: {userId}
+        });
+
+        return {message: 'cart cleared successfully'}
+    }
+
+
+    async deleteCart(
         userId: string,
     ): Promise<{message: string}>{
         await this.prisma.cart.deleteMany({
