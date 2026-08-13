@@ -4,10 +4,15 @@ import { CreateProductVariantDto } from './dtos/create-product-variant.dto';
 import { UpdateProductVariantDto } from './dtos/update-product-variant.dto';
 import { RestockProductVariantDto } from './dtos/restock.dto';
 import { ProductVariant } from '../../../generated/prisma/client';
+import { MessagePattern, Payload } from '@nestjs/microservices';
+import { PrismaService } from '../../../../prisma/prisma.service';
 
 @Controller('product-variant')
 export class ProductVariantController {
-  constructor(private readonly productVariantService: ProductVariantService) {}
+  constructor(
+    private readonly productVariantService: ProductVariantService,
+    private readonly prisma: PrismaService
+  ) {}
 
   @Post(':productId')
   async createProductVariant(
@@ -21,6 +26,19 @@ export class ProductVariantController {
   async getProductVariantById(@Param('id', ParseUUIDPipe) id: string): Promise<ProductVariant>{
     return this.productVariantService.getProductVariantById(id);
   }
+
+
+  @MessagePattern({ cmd: 'get_variants_details'})
+  async getVariantDetails(
+    @Payload() data: {variantIds: string[]},
+  ){
+    const variants = await this.prisma.productVariant.findMany({
+      where: {id: {in: data.variantIds}},
+      select: {id: true, price: true, stock: true, sku: true }
+    });
+    return variants;
+  }
+
 
   @Patch(':id')
   async updateProductVariant(
