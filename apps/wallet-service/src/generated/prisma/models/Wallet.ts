@@ -40,7 +40,7 @@ export type WalletMinAggregateOutputType = {
   id: string | null
   userId: string | null
   balance: runtime.Decimal | null
-  currency: string | null
+  currency: $Enums.Currency | null
   status: $Enums.WalletStatus | null
   version: number | null
   stripeCustomerId: string | null
@@ -54,7 +54,7 @@ export type WalletMaxAggregateOutputType = {
   id: string | null
   userId: string | null
   balance: runtime.Decimal | null
-  currency: string | null
+  currency: $Enums.Currency | null
   status: $Enums.WalletStatus | null
   version: number | null
   stripeCustomerId: string | null
@@ -223,7 +223,7 @@ export type WalletGroupByOutputType = {
   id: string
   userId: string
   balance: runtime.Decimal
-  currency: string
+  currency: $Enums.Currency
   status: $Enums.WalletStatus
   version: number
   stripeCustomerId: string | null
@@ -260,7 +260,7 @@ export type WalletWhereInput = {
   id?: Prisma.UuidFilter<"Wallet"> | string
   userId?: Prisma.UuidFilter<"Wallet"> | string
   balance?: Prisma.DecimalFilter<"Wallet"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  currency?: Prisma.StringFilter<"Wallet"> | string
+  currency?: Prisma.EnumCurrencyFilter<"Wallet"> | $Enums.Currency
   status?: Prisma.EnumWalletStatusFilter<"Wallet"> | $Enums.WalletStatus
   version?: Prisma.IntFilter<"Wallet"> | number
   stripeCustomerId?: Prisma.StringNullableFilter<"Wallet"> | string | null
@@ -293,7 +293,7 @@ export type WalletWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.WalletWhereInput[]
   NOT?: Prisma.WalletWhereInput | Prisma.WalletWhereInput[]
   balance?: Prisma.DecimalFilter<"Wallet"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  currency?: Prisma.StringFilter<"Wallet"> | string
+  currency?: Prisma.EnumCurrencyFilter<"Wallet"> | $Enums.Currency
   status?: Prisma.EnumWalletStatusFilter<"Wallet"> | $Enums.WalletStatus
   version?: Prisma.IntFilter<"Wallet"> | number
   stripeOnboardingComplete?: Prisma.BoolFilter<"Wallet"> | boolean
@@ -327,7 +327,7 @@ export type WalletScalarWhereWithAggregatesInput = {
   id?: Prisma.UuidWithAggregatesFilter<"Wallet"> | string
   userId?: Prisma.UuidWithAggregatesFilter<"Wallet"> | string
   balance?: Prisma.DecimalWithAggregatesFilter<"Wallet"> | runtime.Decimal | runtime.DecimalJsLike | number | string
-  currency?: Prisma.StringWithAggregatesFilter<"Wallet"> | string
+  currency?: Prisma.EnumCurrencyWithAggregatesFilter<"Wallet"> | $Enums.Currency
   status?: Prisma.EnumWalletStatusWithAggregatesFilter<"Wallet"> | $Enums.WalletStatus
   version?: Prisma.IntWithAggregatesFilter<"Wallet"> | number
   stripeCustomerId?: Prisma.StringNullableWithAggregatesFilter<"Wallet"> | string | null
@@ -341,7 +341,7 @@ export type WalletCreateInput = {
   id?: string
   userId: string
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  currency?: string
+  currency?: $Enums.Currency
   status?: $Enums.WalletStatus
   version?: number
   stripeCustomerId?: string | null
@@ -355,7 +355,7 @@ export type WalletUncheckedCreateInput = {
   id?: string
   userId: string
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  currency?: string
+  currency?: $Enums.Currency
   status?: $Enums.WalletStatus
   version?: number
   stripeCustomerId?: string | null
@@ -369,7 +369,7 @@ export type WalletUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   status?: Prisma.EnumWalletStatusFieldUpdateOperationsInput | $Enums.WalletStatus
   version?: Prisma.IntFieldUpdateOperationsInput | number
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -383,7 +383,7 @@ export type WalletUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   status?: Prisma.EnumWalletStatusFieldUpdateOperationsInput | $Enums.WalletStatus
   version?: Prisma.IntFieldUpdateOperationsInput | number
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -397,7 +397,7 @@ export type WalletCreateManyInput = {
   id?: string
   userId: string
   balance?: runtime.Decimal | runtime.DecimalJsLike | number | string
-  currency?: string
+  currency?: $Enums.Currency
   status?: $Enums.WalletStatus
   version?: number
   stripeCustomerId?: string | null
@@ -411,7 +411,7 @@ export type WalletUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   status?: Prisma.EnumWalletStatusFieldUpdateOperationsInput | $Enums.WalletStatus
   version?: Prisma.IntFieldUpdateOperationsInput | number
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -425,7 +425,7 @@ export type WalletUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   balance?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
-  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  currency?: Prisma.EnumCurrencyFieldUpdateOperationsInput | $Enums.Currency
   status?: Prisma.EnumWalletStatusFieldUpdateOperationsInput | $Enums.WalletStatus
   version?: Prisma.IntFieldUpdateOperationsInput | number
   stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -497,6 +497,10 @@ export type DecimalFieldUpdateOperationsInput = {
   decrement?: runtime.Decimal | runtime.DecimalJsLike | number | string
   multiply?: runtime.Decimal | runtime.DecimalJsLike | number | string
   divide?: runtime.Decimal | runtime.DecimalJsLike | number | string
+}
+
+export type EnumCurrencyFieldUpdateOperationsInput = {
+  set?: $Enums.Currency
 }
 
 export type EnumWalletStatusFieldUpdateOperationsInput = {
@@ -590,7 +594,7 @@ export type $WalletPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     id: string
     userId: string
     balance: runtime.Decimal
-    currency: string
+    currency: $Enums.Currency
     status: $Enums.WalletStatus
     version: number
     stripeCustomerId: string | null
@@ -1024,7 +1028,7 @@ export interface WalletFieldRefs {
   readonly id: Prisma.FieldRef<"Wallet", 'String'>
   readonly userId: Prisma.FieldRef<"Wallet", 'String'>
   readonly balance: Prisma.FieldRef<"Wallet", 'Decimal'>
-  readonly currency: Prisma.FieldRef<"Wallet", 'String'>
+  readonly currency: Prisma.FieldRef<"Wallet", 'Currency'>
   readonly status: Prisma.FieldRef<"Wallet", 'WalletStatus'>
   readonly version: Prisma.FieldRef<"Wallet", 'Int'>
   readonly stripeCustomerId: Prisma.FieldRef<"Wallet", 'String'>

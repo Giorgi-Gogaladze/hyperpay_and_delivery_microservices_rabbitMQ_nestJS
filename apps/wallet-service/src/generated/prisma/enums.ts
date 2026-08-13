@@ -16,3 +16,12 @@ export const WalletStatus = {
 } as const
 
 export type WalletStatus = (typeof WalletStatus)[keyof typeof WalletStatus]
+
+
+export const Currency = {
+  GEL: 'GEL',
+  USD: 'USD',
+  EUR: 'EUR'
+} as const
+
+export type Currency = (typeof Currency)[keyof typeof Currency]

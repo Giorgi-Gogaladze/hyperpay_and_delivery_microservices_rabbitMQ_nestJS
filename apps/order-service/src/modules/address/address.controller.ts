@@ -4,6 +4,7 @@ import { CreateAddressDto } from './dtos/create-address.dto';
 import { UpdateAddressDto } from './dtos/update-address.dto';
 import { User } from '@app/common';
 import { Ctx, EventPattern, Payload, RmqContext } from '@nestjs/microservices';
+import { PrismaClientInitializationError, PrismaClientUnknownRequestError } from '@prisma/client/runtime/client';
 
 @Controller('address')
 export class AddressController {
@@ -43,8 +44,13 @@ export class AddressController {
       return await this.addressService.deleteAddressByUserId(data.userId);
       channel.ack(originalMsg);
     } catch (error) {
-      this.logger.error(`Failed to delete address for user ${data.userId}`, error)
-      channel.nack(originalMsg, false, false);
+      this.logger.error(`Failed to delete address for user ${data.userId}`, error);
+
+      const shoudlRetry = 
+      error instanceof PrismaClientInitializationError ||
+      error instanceof PrismaClientUnknownRequestError
+
+      channel.nack(originalMsg, false, shoudlRetry);
     }
   }
 }
