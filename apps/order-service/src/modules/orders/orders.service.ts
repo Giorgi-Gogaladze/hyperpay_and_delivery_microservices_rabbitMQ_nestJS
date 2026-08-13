@@ -5,6 +5,7 @@ import { CartService } from '../cart/cart.service';
 import { firstValueFrom, timeout } from 'rxjs';
 import { VariantDetails } from '../../types/product-variant.interface';
 import { CreateOrderDto } from './dtos/create-order.dto';
+import { OrderDetailed, OrderListItems } from '../../types/order-tems.type';
 
 @Injectable()
 export class OrdersService {
@@ -121,4 +122,38 @@ export class OrdersService {
             throw new InternalServerErrorException('order processing fialed, your money has been rofounded!')
         }
     }
+
+
+    async getMyOrders(userId: string): Promise<OrderListItems[]>{
+        return await this.prisma.order.findMany({
+            where: { userId },
+            orderBy: {createdAt: 'desc'},
+            include: {
+                address: true,  
+                _count: {
+                    select: {orderItems: true}
+                },
+                orderItems: true
+            }
+        })
+    }
+
+
+    async getMyOrderDetails(
+        userId: string,
+        orderId: string
+    ): Promise<OrderDetailed>{
+        const order = await this.prisma.order.findUnique({
+            where: { id: orderId, userId },
+            include: {
+                address: true,
+                orderItems: true
+            }
+        });
+
+        return order;
+    }
+
+
+    
 }
