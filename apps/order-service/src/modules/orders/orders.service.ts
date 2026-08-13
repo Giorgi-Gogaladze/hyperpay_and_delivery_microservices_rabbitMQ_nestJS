@@ -1,16 +1,18 @@
-import { BadRequestException, ConflictException, Inject, Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { CartService } from '../cart/cart.service';
-import { firstValueFrom, timeout } from 'rxjs';
+import { firstValueFrom, NotFoundError, timeout } from 'rxjs';
 import { VariantDetails } from '../../types/product-variant.interface';
 import { CreateOrderDto } from './dtos/create-order.dto';
 import { OrderDetailed, OrderListItems } from '../../types/order-tems.type';
+import { OrderStatus } from '../../generated/prisma/enums';
 
 @Injectable()
 export class OrdersService {
 
-    private logger = new Logger(OrdersService.name);
+    private readonly logger = new Logger(OrdersService.name);
+    private readonly DELIVERY_FEE = 5.00;
 
     constructor(
         private readonly prisma: PrismaService,
@@ -151,9 +153,75 @@ export class OrdersService {
             }
         });
 
+        if(!order){
+            throw new NotFoundException('Order not found')
+        }
+
         return order;
     }
 
 
-    
+    async cancelMyOrder(
+        userId: string,
+        orderId: string
+    ){
+        const myOrder = await this.prisma.order.findFirst({
+            where: {id: orderId, userId},
+            include: {orderItems: true},
+        });
+
+        if(!myOrder){
+            throw new NotFoundException('order not found');
+        }
+
+        if(myOrder.status === OrderStatus.CANCELLED){
+            throw new ConflictException('Order is already canceled');
+        }
+
+        if(myOrder.status === OrderStatus.DELIVERED){
+            throw new ConflictException('DEleivered order cant be canceled');
+        }
+
+        let refoundAmount = Number(myOrder.totalAmount);
+        let cancellationNote = 'Full refound issued';
+
+        if(myOrder.status === OrderStatus.SHIPPED){
+            const deliveryFee = this.DELIVERY_FEE;
+            if(refoundAmount < deliveryFee){
+                refoundAmount = 0;
+                cancellationNote = 'Order cancelled while in transit. Refund depleted by courier trip fee.'
+            }else{
+                refoundAmount -= deliveryFee;
+                cancellationNote = `order canceled while in transit. Courier fee of Gel  ${deliveryFee.toFixed(2)} deducted from refound.`
+            }
+        };
+
+        return await this.prisma.$transaction(async (tx) => {
+            const updatedOrder = await tx.order.update({
+                where: { id: orderId },
+                data: { status: OrderStatus.CANCELLED },
+            });
+
+            this.catalogClient.emit('order.canceled', {
+                orderId: myOrder.id,
+                items: myOrder.orderItems.map((item) => ({
+                    productVariantId: item.productVariantId,
+                    quantity: item.quantity
+                }))
+            });
+
+            if(refoundAmount > 0){
+                this.walletCleint.emit('wallet.refound', {
+                    userId: myOrder.userId,
+                    amount: myOrder.totalAmount,
+                    currency: myOrder.currency,
+                    reason: cancellationNote
+                })
+            }
+        })
+
+    }
+
+
+
 }
