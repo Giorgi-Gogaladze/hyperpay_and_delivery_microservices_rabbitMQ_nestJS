@@ -2,11 +2,13 @@ import { BadRequestException, ConflictException, Inject, Injectable, InternalSer
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ClientProxy } from '@nestjs/microservices';
 import { CartService } from '../cart/cart.service';
-import { firstValueFrom, NotFoundError, timeout } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 import { VariantDetails } from '../../types/product-variant.interface';
 import { CreateOrderDto } from './dtos/create-order.dto';
-import { OrderDetailed, OrderListItems } from '../../types/order-tems.type';
+import { OrderDetailed, OrderListItems, OrdersWithDetails } from '../../types/order-tems.type';
 import { OrderStatus } from '../../generated/prisma/enums';
+import { QueryOrdersDto } from './dtos/query-orders.dto';
+
 
 @Injectable()
 export class OrdersService {
@@ -222,9 +224,31 @@ export class OrdersService {
     }
 
 
+    async getAllOrders(query: QueryOrdersDto): Promise<OrdersWithDetails>{
+        const page = query.page ?? 1;
+        const limit = query.limit ?? 20;
 
-    
+        const [orders, total] =  await this.prisma.$transaction([
+            this.prisma.order.findMany({
+                where: query.status ? {status: query.status} : undefined,
+                skip: (page - 1) * limit,
+                take: limit,
+                orderBy: {createdAt:  'desc'},
+                include: { address: true, _count: {select: {orderItems: true}}}
+            }),
+            this.prisma.order.count({
+                where: query.status ? {status: query.status} : undefined,
+            }),
+        ]);
 
-
-
+        return {
+            data: orders,
+            meta: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit)
+            }
+        };
+    }
 }

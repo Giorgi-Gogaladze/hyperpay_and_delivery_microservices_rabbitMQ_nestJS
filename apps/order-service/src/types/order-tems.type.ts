@@ -1,4 +1,4 @@
-import { Prisma } from "../generated/prisma/client";
+import { Order, Prisma } from "../generated/prisma/client";
 
 export type OrderListItems = Prisma.OrderGetPayload<{
     include: {
@@ -18,3 +18,14 @@ export type OrderDetailed = Prisma.OrderGetPayload<{
     address: true;
   };
 }>;
+
+
+export interface OrdersWithDetails {
+  data: Order[];
+  meta: {
+    page: number;
+    total: number;
+    limit: number;
+    totalPages: number;
+  }
+}
