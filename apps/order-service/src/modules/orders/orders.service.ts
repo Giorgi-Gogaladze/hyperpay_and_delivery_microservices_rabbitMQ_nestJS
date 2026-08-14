@@ -145,7 +145,7 @@ export class OrdersService {
         userId: string,
         orderId: string
     ): Promise<OrderDetailed>{
-        const order = await this.prisma.order.findUnique({
+        const order = await this.prisma.order.findFirst({
             where: { id: orderId, userId },
             include: {
                 address: true,
@@ -182,22 +182,21 @@ export class OrdersService {
             throw new ConflictException('DEleivered order cant be canceled');
         }
 
-        let refoundAmount = Number(myOrder.totalAmount);
+        let refundAmount = Number(myOrder.totalAmount);
         let cancellationNote = 'Full refound issued';
 
         if(myOrder.status === OrderStatus.SHIPPED){
             const deliveryFee = this.DELIVERY_FEE;
-            if(refoundAmount < deliveryFee){
-                refoundAmount = 0;
+            if(refundAmount < deliveryFee){
+                refundAmount = 0;
                 cancellationNote = 'Order cancelled while in transit. Refund depleted by courier trip fee.'
             }else{
-                refoundAmount -= deliveryFee;
+                refundAmount -= deliveryFee;
                 cancellationNote = `order canceled while in transit. Courier fee of Gel  ${deliveryFee.toFixed(2)} deducted from refound.`
             }
         };
 
-        return await this.prisma.$transaction(async (tx) => {
-            const updatedOrder = await tx.order.update({
+            const updatedOrder = await this.prisma.order.update({
                 where: { id: orderId },
                 data: { status: OrderStatus.CANCELLED },
             });
@@ -210,17 +209,21 @@ export class OrdersService {
                 }))
             });
 
-            if(refoundAmount > 0){
+            if(refundAmount > 0){
                 this.walletCleint.emit('wallet.refound', {
                     userId: myOrder.userId,
-                    amount: myOrder.totalAmount,
+                    amount: refundAmount,
                     currency: myOrder.currency,
                     reason: cancellationNote
                 })
             }
-        })
 
+        return { message: 'Order cancelled successfully', refundAmount };    
     }
+
+
+
+    
 
 
 
