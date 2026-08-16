@@ -16,6 +16,15 @@ export class OrdersService {
     private readonly logger = new Logger(OrdersService.name);
     private readonly DELIVERY_FEE = 5.00;
 
+
+    private readonly VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
+        PENDING: ['PROCESSING', 'CANCELLED'],
+        PROCESSING: ['SHIPPED', 'CANCELLED'],
+        SHIPPED: ['DELIVERED', 'CANCELLED'],
+        DELIVERED: [],
+        CANCELLED: []
+    }
+
     constructor(
         private readonly prisma: PrismaService,
         private readonly cartService: CartService,
@@ -166,7 +175,7 @@ export class OrdersService {
     async cancelMyOrder(
         userId: string,
         orderId: string
-    ){
+    ): Promise<{message: string, refundAmount: number}>{
         const myOrder = await this.prisma.order.findFirst({
             where: {id: orderId, userId},
             include: {orderItems: true},
@@ -251,4 +260,28 @@ export class OrdersService {
             }
         };
     }
+
+
+
+    async updateOrderStatu(orderId: string, newStatus: OrderStatus){
+        const order = await this.prisma.order.findUnique({ where: { id: orderId } });
+
+        if (!order) {
+            throw new NotFoundException('Order not found');
+        }
+
+        const allowedNext = this.VALID_TRANSITIONS[order.status];
+
+        if(!allowedNext.includes(newStatus)){
+            throw new ConflictException(`cannot transition order from ${order.status} to ${newStatus}`);
+        }
+
+        return this.prisma.order.update({
+            where: {id: orderId},
+            data: { status: newStatus},
+
+        })
+    }
+
+
 }
