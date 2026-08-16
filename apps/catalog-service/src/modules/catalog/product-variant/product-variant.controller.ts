@@ -4,7 +4,7 @@ import { CreateProductVariantDto } from './dtos/create-product-variant.dto';
 import { UpdateProductVariantDto } from './dtos/update-product-variant.dto';
 import { RestockProductVariantDto } from './dtos/restock.dto';
 import { ProductVariant } from '../../../generated/prisma/client';
-import { MessagePattern, Payload } from '@nestjs/microservices';
+import { EventPattern, MessagePattern, Payload } from '@nestjs/microservices';
 import { PrismaService } from '../../../../prisma/prisma.service';
 
 @Controller('product-variant')
@@ -38,6 +38,40 @@ export class ProductVariantController {
     });
     return variants;
   }
+
+
+  @EventPattern('order.created')
+  async handleOrderCreatd(
+    @Payload() data: {orderId: string; items: { variantId: string; quantity: number}[]}
+  ){
+    await  this.prisma.$transaction(
+      data.items.map((item) => 
+      this.prisma.productVariant.update({
+        where: {id: item.variantId},
+        data: {
+          stock: { decrement: item.quantity}
+        }
+      })
+    )
+    )
+  }
+
+
+  @EventPattern('order.canceled')
+  async handleOrderCancellation(
+    @Payload() data: {orderId: string, items: { variantId: string; quantity: number}[]}
+  ){
+    await this.prisma.$transaction(
+      data.items.map((item) => 
+      this.prisma.productVariant.update({
+        where: {id: item.variantId},
+        data: {
+          stock: { increment: item.quantity}
+        }
+      }))
+    )
+  }
+
 
 
   @Patch(':id')
