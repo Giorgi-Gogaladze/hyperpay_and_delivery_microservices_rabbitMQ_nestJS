@@ -1,0 +1,28 @@
+model CourierApplication {
+    id     String @id @default(uuid()) @db.Uuid
+    userId String @db.Uuid 
+
+    vehicleType     VehicleType
+    documentUrls    String[]
+    status          ApplicationStatus @default(PENDING)
+    rejectionReason String?
+
+    courierProfile CourierProfile?
+
+    createdAt  DateTime  @default(now())
+    reviewedAt DateTime?
+
+    @@map("courier_applications")
+}
+
+enum ApplicationStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}
+
+enum VehicleType {
+    BIKE
+    MOPED
+    CAR
+}

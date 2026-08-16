@@ -1,0 +1,17 @@
+model CourierProfile {
+    id            String @id @default(uuid()) @db.Uuid
+    userId        String @unique @db.Uuid
+
+    applicationId String              @unique @db.Uuid
+    application   CourierApplication  @relation(fields: [applicationId], references: [id])
+
+    vehicleType VehicleType
+    isActive    Boolean @default(true)
+
+    orders Order[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("courier_profiles")
+}

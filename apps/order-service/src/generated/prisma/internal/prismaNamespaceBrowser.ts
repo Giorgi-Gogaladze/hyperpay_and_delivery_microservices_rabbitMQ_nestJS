@@ -54,6 +54,8 @@ export const ModelName = {
   Address: 'Address',
   Cart: 'Cart',
   CartItem: 'CartItem',
+  CourierApplication: 'CourierApplication',
+  CourierProfile: 'CourierProfile',
   Favorites: 'Favorites',
   Order: 'Order',
   OrderItem: 'OrderItem'
@@ -113,6 +115,33 @@ export const CartItemScalarFieldEnum = {
 export type CartItemScalarFieldEnum = (typeof CartItemScalarFieldEnum)[keyof typeof CartItemScalarFieldEnum]
 
 
+export const CourierApplicationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  vehicleType: 'vehicleType',
+  documentUrls: 'documentUrls',
+  status: 'status',
+  rejectionReason: 'rejectionReason',
+  createdAt: 'createdAt',
+  reviewedAt: 'reviewedAt'
+} as const
+
+export type CourierApplicationScalarFieldEnum = (typeof CourierApplicationScalarFieldEnum)[keyof typeof CourierApplicationScalarFieldEnum]
+
+
+export const CourierProfileScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  applicationId: 'applicationId',
+  vehicleType: 'vehicleType',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CourierProfileScalarFieldEnum = (typeof CourierProfileScalarFieldEnum)[keyof typeof CourierProfileScalarFieldEnum]
+
+
 export const FavoritesScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
@@ -130,6 +159,7 @@ export const OrderScalarFieldEnum = {
   status: 'status',
   totalAmount: 'totalAmount',
   currency: 'currency',
+  courierId: 'courierId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

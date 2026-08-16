@@ -33,6 +33,16 @@ export type Cart = Prisma.CartModel
  */
 export type CartItem = Prisma.CartItemModel
 /**
+ * Model CourierApplication
+ * 
+ */
+export type CourierApplication = Prisma.CourierApplicationModel
+/**
+ * Model CourierProfile
+ * 
+ */
+export type CourierProfile = Prisma.CourierProfileModel
+/**
  * Model Favorites
  * 
  */

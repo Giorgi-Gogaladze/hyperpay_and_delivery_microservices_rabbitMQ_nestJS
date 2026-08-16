@@ -11,6 +11,9 @@ model Order {
 
     orderItems OrderItem[]
 
+    courierId String?          @db.Uuid
+    courier   CourierProfile?  @relation(fields: [courierId], references: [id])
+
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 

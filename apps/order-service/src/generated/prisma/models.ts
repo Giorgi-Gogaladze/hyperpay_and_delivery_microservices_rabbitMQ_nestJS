@@ -11,6 +11,8 @@
 export type * from './models/Address.js'
 export type * from './models/Cart.js'
 export type * from './models/CartItem.js'
+export type * from './models/CourierApplication.js'
+export type * from './models/CourierProfile.js'
 export type * from './models/Favorites.js'
 export type * from './models/Order.js'
 export type * from './models/OrderItem.js'
