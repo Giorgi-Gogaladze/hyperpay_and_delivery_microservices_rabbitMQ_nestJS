@@ -1,9 +1,10 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ApplyCourierDto } from './dto/apply-courier.dto';
 import { CourierApplication } from '../../generated/prisma/client';
 import { profile } from 'console';
 import { IApprovedApplicationResponse } from '../../types/approved-application.interface';
+import { RejectApplicationDto } from './dto/reject-application.dto';
 
 @Injectable()
 export class CourierService {
@@ -54,13 +55,22 @@ export class CourierService {
     }
 
 
-
-    async getpendingApplications(){
+    async getPendingApplications(): Promise<CourierApplication[]>{
         const pendingApps = await this.prisma.courierApplication.findMany({
             where: { status: 'PENDING'},
             orderBy: {createdAt: 'asc'}
         });
+        return pendingApps;
    }
+
+
+   async getrejectedApplications(): Promise<CourierApplication[]>{
+        return await this.prisma.courierApplication.findMany({
+            where: { status: 'REJECTED'},
+            orderBy: {createdAt: 'desc'}
+        });
+   }
+   
 
    async approveApplication(applicationId: string): Promise<IApprovedApplicationResponse>{
     const application = await this.prisma.courierApplication.findUnique({
@@ -95,6 +105,55 @@ export class CourierService {
     })
 
    }
+
+
+   async rejectApplication(applicationId: string, dto: RejectApplicationDto){
+    const application = await this.prisma.courierApplication.findUnique({
+      where: { id: applicationId },
+    });
+
+    if (!application) {
+      throw new NotFoundException('Application not found');
+    }
+
+    if (application.status !== 'PENDING') {
+      throw new BadRequestException(
+        `application already ${application.status.toLowerCase()}`,
+      );
+    };
+
+    return this.prisma.courierApplication.update({
+      where: { id: applicationId },
+      data: {
+        status: 'REJECTED',
+        rejectionReason: dto.reason,
+        reviewedAt: new Date(),
+      },
+    });
+   }
+
+
+   async getProfileByUserId(userId: string) {
+        const profile = await this.prisma.courierProfile.findUnique({
+            where: { userId },
+        });
+
+        if (!profile) {
+            throw new NotFoundException('You are not an approved courier');
+        }
+
+        return profile;
+    }
+
+
+    async toggleActive(userId: string, isActive: boolean) {
+        const profile = await this.getProfileByUserId(userId);
+
+        return this.prisma.courierProfile.update({
+            where: { id: profile.id },
+            data: { isActive },
+        });
+  }
 
 
 }
