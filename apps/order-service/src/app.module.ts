@@ -5,6 +5,7 @@ import { AddressModule } from './modules/address/address.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { CartModule } from './modules/cart/cart.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
+import { CourierModule } from './modules/courier/courier.module';
 
 
 @Module({
@@ -18,6 +19,7 @@ import { FavoritesModule } from './modules/favorites/favorites.module';
     OrdersModule,
     CartModule,
     FavoritesModule,
+    CourierModule,
   ],
   controllers: [],
   providers: [],
