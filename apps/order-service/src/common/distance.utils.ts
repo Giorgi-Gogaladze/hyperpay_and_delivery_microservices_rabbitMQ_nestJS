@@ -15,7 +15,7 @@ export function calculateDistanceKm(
     const dLon = toRadian(lon2 - lon1);
 
     const a = 
-    Math.sin(dLat / 2)**2 + 
+    Math.sin(dLat / 2) ** 2 + 
     Math.cos(toRadian(lat1)) *
         Math.cos(toRadian(lat2)) *
       Math.sin(dLon / 2) ** 2;
