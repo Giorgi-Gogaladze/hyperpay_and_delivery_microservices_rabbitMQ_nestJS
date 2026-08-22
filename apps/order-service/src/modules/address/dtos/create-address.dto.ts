@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
 
 export class CreateAddressDto {
   @IsUUID('4', { message: 'userId must be a valid UUID v4' })
@@ -33,4 +33,14 @@ export class CreateAddressDto {
   @IsBoolean()
   @IsOptional()
   isDefault?: boolean;
+
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitude: number;
+
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitude: number;
 }
