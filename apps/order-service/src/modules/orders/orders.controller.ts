@@ -7,6 +7,7 @@ import { Role, Roles } from '@app/common/decorators/roles.decorator';
 import { QueryOrdersDto } from './dtos/query-orders.dto';
 import { UpdateOrderStatusDto } from './dtos/update-status.dto';
 import { OrderDetailed, OrderListItems, OrdersWithDetails } from '../../types/order-tems.type';
+import { Order } from '../../generated/prisma/client';
 
 UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('orders')
@@ -36,7 +37,6 @@ async getMyOrders(@User('id') userId: string): Promise<OrderListItems[]> {
     return await this.ordersService.getMyOrderDetails(userId, orderId);
   }
 
-
 @Patch('my/:id/cancel')
   async cancelMyOrder(
     @User('id') userId: string,
@@ -45,7 +45,7 @@ async getMyOrders(@User('id') userId: string): Promise<OrderListItems[]> {
     return await this.ordersService.cancelMyOrder(userId, orderId);
 }
 
-@Get('admin')
+@Get('admin/all')
 @Roles(Role.ADMIN)
   async getAllOrders(
     @Query() query: QueryOrdersDto
@@ -55,7 +55,7 @@ async getMyOrders(@User('id') userId: string): Promise<OrderListItems[]> {
 
 
 @Patch('admin/:id/status')
-@Roles(Role.ADMIN)
+@Roles(Role.ADMIN, Role.COURIER)
   async updateOrderStatus(
     @Param('id') orderId: string,
     @Body() dto: UpdateOrderStatusDto

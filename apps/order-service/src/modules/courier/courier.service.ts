@@ -2,7 +2,6 @@ import { BadRequestException, ConflictException, Injectable, NotFoundException }
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ApplyCourierDto } from './dto/apply-courier.dto';
 import { CourierApplication, CourierProfile } from '../../generated/prisma/client';
-import { profile } from 'console';
 import { IApprovedApplicationResponse } from '../../types/approved-application.interface';
 import { RejectApplicationDto } from './dto/reject-application.dto';
 
@@ -81,7 +80,7 @@ export class CourierService {
         throw new NotFoundException('Application not found')
     };
 
-    if(application.status = 'APPROVED'){
+    if(application.status === 'APPROVED'){
         throw new ConflictException('Application is already approved')
     }
 

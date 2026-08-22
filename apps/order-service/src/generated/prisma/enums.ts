@@ -29,6 +29,8 @@ export type VehicleType = (typeof VehicleType)[keyof typeof VehicleType]
 
 export const OrderStatus = {
   PENDING: 'PENDING',
+  PICKED_UP: 'PICKED_UP',
+  ACCEPTED: 'ACCEPTED',
   PROCESSING: 'PROCESSING',
   SHIPPED: 'SHIPPED',
   DELIVERED: 'DELIVERED',

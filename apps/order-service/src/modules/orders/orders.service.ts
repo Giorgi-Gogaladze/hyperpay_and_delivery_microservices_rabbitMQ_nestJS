@@ -8,6 +8,8 @@ import { CreateOrderDto } from './dtos/create-order.dto';
 import { OrderDetailed, OrderListItems, OrdersWithDetails } from '../../types/order-tems.type';
 import { OrderStatus } from '../../generated/prisma/enums';
 import { QueryOrdersDto } from './dtos/query-orders.dto';
+import { DeliveryFeeService } from './delivery-fee.service';
+import { CourierService } from '../courier/courier.service';
 
 
 @Injectable()
@@ -19,15 +21,19 @@ export class OrdersService {
 
     private readonly VALID_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
         PENDING: ['PROCESSING', 'CANCELLED'],
-        PROCESSING: ['SHIPPED', 'CANCELLED'],
+        PROCESSING: ['ACCEPTED', 'CANCELLED'],
+        ACCEPTED: ['PICKED_UP', 'CANCELLED'],
+        PICKED_UP: ['SHIPPED', 'CANCELLED'],
         SHIPPED: ['DELIVERED', 'CANCELLED'],
         DELIVERED: [],
-        CANCELLED: []
-    }
+        CANCELLED: [],
+    };
 
     constructor(
         private readonly prisma: PrismaService,
         private readonly cartService: CartService,
+        private readonly deliveryFeeServie: DeliveryFeeService,
+        private readonly courierService: CourierService,
         @Inject('CATALOG_SERVICE') private readonly catalogClient: ClientProxy,
         @Inject('WALLET_SERVICE') private readonly walletCleint: ClientProxy,
     ){}
@@ -134,6 +140,47 @@ export class OrdersService {
             });
             throw new InternalServerErrorException('order processing fialed, your money has been rofounded!')
         }
+    }
+
+
+    async getAvailableOrders(){
+        return this.prisma.order.findMany({
+            where: {status: 'PENDING', courierId: null},
+            include: { address: true },
+            orderBy: { createdAt: 'asc' },
+        })
+    }
+
+
+    async clainOrder(orderId: string, userId: string){
+        const courierProfile = await this.courierService.getProfileByUserId(userId);
+
+        if (!courierProfile.isActive) {
+            throw new ConflictException('You must be active to claim orders');
+        }
+
+        const result = await this.prisma.order.updateMany({
+            where: {
+                id: orderId,
+                status: 'PENDING',
+                courierId: null,
+            },
+            data: {
+                courierId: courierProfile.id,
+                status: 'ACCEPTED',
+            },
+        });
+
+        if (result.count === 0) {
+            throw new ConflictException(
+                'Order is no longer available (already claimed or invalid status)',
+            );
+        }
+
+        return this.prisma.order.findUnique({
+            where: { id: orderId },
+            include: { address: true, orderItems: true },
+        });
     }
 
 
@@ -283,5 +330,59 @@ export class OrdersService {
         })
     }
 
+
+    async markDelivered(orderId: string, courierId: string){
+        const order = await this.prisma.order.findFirst({
+            where: {id: orderId, courierId: courierId, status: 'PROCESSING'},
+            include: {address: true},
+        });
+
+        if (!order) {
+            throw new NotFoundException('Order not found, not assigned to you, or not in correct status',);
+        }
+
+        const {distanceInKm, fee} = this.deliveryFeeServie.calculateFee(
+            order.address.latitude,
+            order.address.longitude,
+        );
+
+        const updatedOrder = await this.prisma.order.update({
+            where: { id: orderId },
+            data: { status: 'DELIVERED' },
+        });
+
+        const courierProfile = await this.prisma.courierProfile.findUnique({
+            where: { id: courierId },
+        });
+
+        this.walletCleint.emit('wallet.payout', {
+            userId: courierProfile!.userId,
+            amount: fee,
+            currency: order.currency,
+            reason: `Delivery payout for order ${order.id} (${distanceInKm} km)`,
+        });
+
+        return { order: updatedOrder, deliveryFee: fee, distanceInKm };
+    }
+
+
+    async markPickedUp(orderId: string, userId: string) {
+        const courierProfile = await this.courierService.getProfileByUserId(userId);
+
+        const order = await this.prisma.order.findFirst({
+            where: { id: orderId, courierId: courierProfile.id, status: 'ACCEPTED' },
+        });
+
+        if (!order) {
+            throw new NotFoundException(
+                'Order not found, not assigned to you, or not in correct status',
+            );
+        }
+
+        return this.prisma.order.update({
+            where: { id: orderId },
+            data: { status: 'PICKED_UP' },
+        });
+    }
 
 }

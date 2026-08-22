@@ -37,6 +37,8 @@ model OrderItem {
 
 enum OrderStatus {
     PENDING
+    PICKED_UP
+    ACCEPTED
     PROCESSING
     SHIPPED
     DELIVERED
