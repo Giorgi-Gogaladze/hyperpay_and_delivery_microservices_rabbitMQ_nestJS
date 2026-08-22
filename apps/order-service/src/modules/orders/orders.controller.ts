@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, UseGuards, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Param, Patch, Post, UseGuards, Query, ParseUUIDPipe } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { JwtAuthGuard, User } from '@app/common';
 import { CreateOrderDto } from './dtos/create-order.dto';
@@ -7,7 +7,6 @@ import { Role, Roles } from '@app/common/decorators/roles.decorator';
 import { QueryOrdersDto } from './dtos/query-orders.dto';
 import { UpdateOrderStatusDto } from './dtos/update-status.dto';
 import { OrderDetailed, OrderListItems, OrdersWithDetails } from '../../types/order-tems.type';
-import { Order } from '../../generated/prisma/client';
 
 UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('orders')
@@ -26,6 +25,21 @@ async createOrder(
 @Get('my')
 async getMyOrders(@User('id') userId: string): Promise<OrderListItems[]> {
   return await this.ordersService.getMyOrders(userId);
+}
+
+@Get('available-orders')
+async getAvailableOrders(){
+  return await this.ordersService.getAvailableOrders();
+}
+
+
+@Post(':id/claim')
+@Roles(Role.COURIER)
+claimOrder(
+  @Param('id', ParseUUIDPipe) orderId: string,
+  @User('id') userId: string,
+) {
+  return this.ordersService.claimOrder(userId, orderId);
 }
 
 
@@ -53,6 +67,25 @@ async getMyOrders(@User('id') userId: string): Promise<OrderListItems[]> {
     return await this.ordersService.getAllOrders(query);
 }
 
+@Post(':id/deliver')
+@Roles(Role.COURIER)
+markDelivered(
+  @Param('id', ParseUUIDPipe) id: string,
+  @User('id') userId: string,
+) {
+  return this.ordersService.markDelivered(id, userId);
+}
+
+
+@Post(':id/picked_up')
+@Roles(Role.COURIER)
+markPickedUp(
+  @Param('id', ParseUUIDPipe) id: string,
+  @User('id') userId: string,
+) {
+  return this.ordersService.markPickedUp(id, userId);
+}
+
 
 @Patch('admin/:id/status')
 @Roles(Role.ADMIN, Role.COURIER)
@@ -60,7 +93,7 @@ async getMyOrders(@User('id') userId: string): Promise<OrderListItems[]> {
     @Param('id') orderId: string,
     @Body() dto: UpdateOrderStatusDto
   ) {
-    return await this.ordersService.updateOrderStatu(orderId, dto.status);
+    return await this.ordersService.updateOrderStatus(orderId, dto.status);
 }
 
 }
