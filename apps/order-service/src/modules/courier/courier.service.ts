@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 import { ApplyCourierDto } from './dto/apply-courier.dto';
-import { CourierApplication } from '../../generated/prisma/client';
+import { CourierApplication, CourierProfile } from '../../generated/prisma/client';
 import { profile } from 'console';
 import { IApprovedApplicationResponse } from '../../types/approved-application.interface';
 import { RejectApplicationDto } from './dto/reject-application.dto';
@@ -146,14 +146,30 @@ export class CourierService {
     }
 
 
-    async toggleActive(userId: string, isActive: boolean) {
+    async toggleActive(userId: string, isActive: boolean): Promise<CourierProfile>{
         const profile = await this.getProfileByUserId(userId);
 
         return this.prisma.courierProfile.update({
             where: { id: profile.id },
             data: { isActive },
         });
-  }
+    }
+
+
+    async getProfileById(userId: string){
+        const user = await this.prisma.courierProfile.findUnique({
+            where: {id: userId}
+        });
+
+        if (!profile) {
+            throw new NotFoundException('You are not an approved courier');
+        }
+
+            return profile;
+    }
+
+    
+
 
 
 }
