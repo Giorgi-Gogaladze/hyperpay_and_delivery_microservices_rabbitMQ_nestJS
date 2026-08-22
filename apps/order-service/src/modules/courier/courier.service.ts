@@ -101,13 +101,17 @@ export class CourierService {
             }
         })
 
-        return {application: updatedApplication, profile: updatedProfile}
+        return {
+            message: 'Applications is approved', 
+            application: updatedApplication, 
+            profile: updatedProfile
+        }
     })
 
    }
 
 
-   async rejectApplication(applicationId: string, dto: RejectApplicationDto){
+   async rejectApplication(applicationId: string, dto: RejectApplicationDto): Promise<CourierApplication>{
     const application = await this.prisma.courierApplication.findUnique({
       where: { id: applicationId },
     });
@@ -133,7 +137,7 @@ export class CourierService {
    }
 
 
-   async getProfileByUserId(userId: string) {
+   async getProfileByUserId(userId: string): Promise<CourierProfile>{
         const profile = await this.prisma.courierProfile.findUnique({
             where: { userId },
         });
@@ -156,19 +160,19 @@ export class CourierService {
     }
 
 
-    async getProfileById(userId: string){
-        const user = await this.prisma.courierProfile.findUnique({
-            where: {id: userId}
+    async getMyProfile(userId: string): Promise<CourierProfile>{
+        const profile = await this.prisma.courierProfile.findUnique({
+            where: { userId }
         });
 
         if (!profile) {
             throw new NotFoundException('You are not an approved courier');
         }
 
-            return profile;
+        return profile;
     }
 
-    
+
 
 
 
