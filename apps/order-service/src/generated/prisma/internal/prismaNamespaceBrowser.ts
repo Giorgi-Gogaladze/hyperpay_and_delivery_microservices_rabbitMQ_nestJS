@@ -86,6 +86,8 @@ export const AddressScalarFieldEnum = {
   street: 'street',
   zipCode: 'zipCode',
   isDefault: 'isDefault',
+  latitude: 'latitude',
+  longitude: 'longitude',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

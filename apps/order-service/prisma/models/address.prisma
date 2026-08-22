@@ -1,19 +1,21 @@
 model Address {
-    id String @id @default(uuid()) @db.Uuid
+    id     String @id @default(uuid()) @db.Uuid
     userId String @db.Uuid
 
-    fullName     String
-    phoneNumber  String
-    city         String
-    street       String
-    zipCode      String?
-    isDefault    Boolean @default(false)
+    fullName    String
+    phoneNumber String
+    city        String
+    street      String
+    zipCode     String?
+    isDefault   Boolean @default(false)
+
+    latitude  Float
+    longitude Float
 
     orders Order[]
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
-
 
     @@map("addresses")
 }

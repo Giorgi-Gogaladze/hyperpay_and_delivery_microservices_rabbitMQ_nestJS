@@ -5,6 +5,7 @@ import { CourierController } from './courier.controller';
 @Module({
   controllers: [CourierController],
   providers: [CourierService],
+  exports: [CourierService]
 })
 
 export class CourierModule {}
